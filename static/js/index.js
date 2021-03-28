@@ -53,3 +53,24 @@ function modelSelected() {
 //        container.style.outline = "";
 //    }
 //}
+
+
+function makeLoadVisible(button) {
+    input = button.nextElementSibling;
+    uploadBtn = input.nextElementSibling;
+    console.log(input.style.display)
+    if (input.style.display == "none") {
+        input.style.display = "inline-block";
+        uploadBtn.style.display = "inline-block";
+    } else {
+        input.style.display = "none";
+        uploadBtn.style.display = "none";
+    }
+}
+
+function load(btn) {
+    /*TODO: what do you do to the uploaded file*/
+    input = btn.previousElementSibling;
+    input.style.display = "none";
+    btn.style.display = "none";
+}

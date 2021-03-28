@@ -79,17 +79,56 @@ function updateInput(input) {
 
 function makeLoadVisible(button) {
     input = button.nextElementSibling;
-    console.log(input)
-    input.style.display = "inline-block";
+    uploadBtn = input.nextElementSibling;
+    console.log(input.style.display)
+    if (input.style.display == "none") {
+        input.style.display = "inline-block";
+        uploadBtn.style.display = "inline-block";
+    } else {
+        input.style.display = "none";
+        uploadBtn.style.display = "none";
+    }
 }
 
-function load() {
+function load(btn) {
+    /*TODO: what do you do to the uploaded file*/
+    input = btn.previousElementSibling;
+    input.style.display = "none";
+    btn.style.display = "none";
 }
 
-function save() {
-    download("test content", "testName", "txt")
+function makeSaveComponentsVisible(button) {
+    input = button.nextElementSibling;
+    console.log(input.style.display)
+    if (input.style.display == "none") {
+        input.style.display = "inline-block";
+    } else {
+        input.style.display = "none";
+    }
+
+    input = input.nextElementSibling;
+    console.log(input.style.display)
+    if (input.style.display == "none") {
+        input.style.display = "inline-block";
+    } else {
+        input.style.display = "none";
+    }
 }
 
+function save(btn) {
+    /*
+        TODO: get the value to be saved & Change "test content"
+    */
+    input = btn.previousElementSibling;
+    download("test content", input.value, "txt")
+    input.style.display = "none";
+    btn.style.display = "none";
+    input.value = "";
+}
+
+/*
+    Copied from stackoverflow
+*/
 function download(data, filename, type) {
     var file = new Blob([data], {type: type});
     if (window.navigator.msSaveOrOpenBlob) // IE10+

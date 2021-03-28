@@ -6,7 +6,6 @@
           integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
     <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/styles.css') }}">
     <script type=text/javascript src="{{  url_for('static', filename='js/model.js') }}"></script>
-    <script type=text/javascript src="{{  url_for('static', filename='js/all.js') }}"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <title>EasyRL</title>
   </head>
@@ -45,9 +44,12 @@
 <!--      <label class="form-label" for="customFile">Default file input example</label>-->
 <!--      <input type="file" class="form-control" id="customFile" />-->
       <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" onClick="makeLoadVisible(this)">Load</button>
-      <input type="file" onchange="load()"/>
+      <input class="form-control" type="file" onchange="load()"/>
+      <button type="button" class="btn btn-primary btn-lg btn-block, loadBtn" onClick="load(this)">Upload</button>
 <!--      class="form-control"-->
-      <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" onClick="save();">Save</button>
+      <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" onClick="makeSaveComponentsVisible(this);">Save</button>
+      <input type="text" class="form-control, saveName" placeholder="filename" aria-label="filename" aria-describedby="basic-addon1">
+      <button type="button" class="btn btn-primary btn-lg btn-block, saveNameBtn  " onClick="save(this)">Download</button>
     </div>
 
 

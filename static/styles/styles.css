@@ -1,5 +1,25 @@
+/* all */
+
+body {
+    overflow-x: hidden;
+}
+
 /*page 1 and 2*/
 input[type=file] {
+    display:none;
+    width:300px;
+}
+
+.loadBtn {
+    display:none;
+}
+
+.saveName {
+    display:none;
+    width:200px;
+}
+
+.saveNameBtn {
     display:none;
 }
 

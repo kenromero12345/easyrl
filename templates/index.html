@@ -6,7 +6,6 @@
           integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
     <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/styles.css') }}">
     <script type=text/javascript src="{{  url_for('static', filename='js/index.js') }}"></script>
-    <script type=text/javascript src="{{  url_for('static', filename='js/all.js') }}"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <title>EasyRL</title>
   </head>
@@ -59,15 +58,19 @@
 <!--    </div>-->
 
     <div>
-      <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" id="modelButton1">button1</button>
-      <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons">button2</button>
-      <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons">button3</button>
-      <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons">button4</button>
+      <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" id="modelButton1"
+              onClick="makeLoadVisible(this)">Load Custom Environment</button>
+      <input class="form-control" type="file" onchange="load()"/>
+      <button type="button" class="btn btn-primary btn-lg btn-block, loadBtn" onClick="load(this)">Upload</button>
+      <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
+              onClick="makeLoadVisible(this)">Load Custom Agent</button>
+      <input class="form-control" type="file" onchange="load()"/>
+      <button type="button" class="btn btn-primary btn-lg btn-block, loadBtn" onClick="load(this)">Upload</button>
     </div>
 
     <!--    javascript get environment-->
     <!--    slider-->
-    <h1> Environments:</h1>
+    <h1> Environments</h1>
     <div class="environmentBtns">
       <label class="environmentCustImg">
 
@@ -145,7 +148,7 @@
         <!--    javascript get agents-->
     <!--    slider-->
 
-    <h1> Agents:</h1>
+    <h1> Agents</h1>
     <div class="agentBtns">
       <div class="agentBtn">
         <input type="radio" class="btn-check" name="options" id="option1" autocomplete="off">
