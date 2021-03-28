@@ -6,13 +6,14 @@
           integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
     <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/styles.css') }}">
     <script type=text/javascript src="{{  url_for('static', filename='js/model.js') }}"></script>
+    <script type=text/javascript src="{{  url_for('static', filename='js/all.js') }}"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <title>EasyRL</title>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container-fluid">
-        <a class="navbar-brand" href="index">EasyRL</a>
+        <a class="navbar-brand" href="/index">EasyRL</a>
         <button
           class="navbar-toggler"
           type="button"
@@ -26,9 +27,9 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <div class="navbar-nav">
-            <a class="nav-link active" aria-current="page" href="index">Model</a>
-            <a class="nav-link" href="about">About</a>
-            <a class="nav-link" href="help">Help</a>
+            <a class="nav-link active" aria-current="page" href="/index">Model</a>
+            <a class="nav-link" href="/about">About</a>
+            <a class="nav-link" href="/help">Help</a>
           </div>
         </div>
       </div>
@@ -41,6 +42,12 @@
       <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons">button2</button>
       <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons">button3</button>
       <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons">button4</button>
+<!--      <label class="form-label" for="customFile">Default file input example</label>-->
+<!--      <input type="file" class="form-control" id="customFile" />-->
+      <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" onClick="makeLoadVisible(this)">Load</button>
+      <input type="file" onchange="load()"/>
+<!--      class="form-control"-->
+      <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" onClick="save();">Save</button>
     </div>
 
 

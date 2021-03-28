@@ -67,3 +67,43 @@ function updateInput(input) {
         slider.value = input.value;
     }
 }
+
+//function save() {
+//    val = "";
+//    mydoc = document.open();
+//    mydoc.write(val);
+//    mydoc.execCommand("saveAs",true,".txt"); //you can change the .txt to your extention
+//    mydoc.close();
+////    history.go(-1);
+//}
+
+function makeLoadVisible(button) {
+    input = button.nextElementSibling;
+    console.log(input)
+    input.style.display = "inline-block";
+}
+
+function load() {
+}
+
+function save() {
+    download("test content", "testName", "txt")
+}
+
+function download(data, filename, type) {
+    var file = new Blob([data], {type: type});
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+        window.navigator.msSaveOrOpenBlob(file, filename);
+    else { // Others
+        var a = document.createElement("a"),
+                url = URL.createObjectURL(file);
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 0);
+    }
+}
