@@ -68,28 +68,6 @@ function updateInput(input) {
     }
 }
 
-//function save() {
-//    val = "";
-//    mydoc = document.open();
-//    mydoc.write(val);
-//    mydoc.execCommand("saveAs",true,".txt"); //you can change the .txt to your extention
-//    mydoc.close();
-////    history.go(-1);
-//}
-
-function makeLoadVisible(button) {
-    input = button.nextElementSibling;
-    uploadBtn = input.nextElementSibling;
-    console.log(input.style.display)
-    if (input.style.display == "none") {
-        input.style.display = "inline-block";
-        uploadBtn.style.display = "inline-block";
-    } else {
-        input.style.display = "none";
-        uploadBtn.style.display = "none";
-    }
-}
-
 function load(btn) {
     /*TODO: what do you do to the uploaded file*/
     input = btn.previousElementSibling;
@@ -98,8 +76,8 @@ function load(btn) {
 }
 
 function makeSaveComponentsVisible(button) {
+    hideUploadDownload();
     input = button.nextElementSibling;
-    console.log(input.style.display)
     if (input.style.display == "none") {
         input.style.display = "inline-block";
     } else {
@@ -107,7 +85,6 @@ function makeSaveComponentsVisible(button) {
     }
 
     input = input.nextElementSibling;
-    console.log(input.style.display)
     if (input.style.display == "none") {
         input.style.display = "inline-block";
     } else {

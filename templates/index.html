@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="en">
   <head>
-<!--    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">-->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
     <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/styles.css') }}">
     <script type=text/javascript src="{{  url_for('static', filename='js/index.js') }}"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script type=text/javascript src="{{  url_for('static', filename='js/combined.js') }}"></script>
     <title>EasyRL</title>
   </head>
   <body>
@@ -34,31 +34,8 @@
       </div>
     </nav>
 
-
-<!--          <div class="col-sm-10">-->
-<!--        <div class="form-check">-->
-<!--          <input class="btn-check" type="radio" name="gridRadios" id="gridRadios1" value="option1" checked>-->
-<!--          <label class="btn btn-secondary" for="gridRadios1">-->
-<!--            First radio-->
-<!--          </label>-->
-<!--        </div>-->
-<!--        <div class="form-check">-->
-<!--          <input class="btn-check" type="radio" name="gridRadios" id="gridRadios2" value="option2">-->
-<!--          <label class="btn btn-secondary" for="gridRadios2">-->
-<!--            Second radio-->
-<!--          </label>-->
-<!--        </div>-->
-<!--        <div class="form-check disabled">-->
-<!--          <input class="btn-check" type="radio" name="gridRadios" id="gridRadios3" value="option3" disabled>-->
-<!--          <label class="btn btn-secondary" for="gridRadios3">-->
-<!--            Third disabled radio-->
-<!--          </label>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </div>-->
-
-    <div>
-      <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" id="modelButton1"
+    <div class="topBtn">
+      <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
               onClick="makeLoadVisible(this)">Load Custom Environment</button>
       <input class="form-control" type="file" onchange="load()"/>
       <button type="button" class="btn btn-primary btn-lg btn-block, loadBtn" onClick="load(this)">Upload</button>
@@ -68,8 +45,6 @@
       <button type="button" class="btn btn-primary btn-lg btn-block, loadBtn" onClick="load(this)">Upload</button>
     </div>
 
-    <!--    javascript get environment-->
-    <!--    slider-->
     <h1> Environments</h1>
     <div class="environmentBtns">
       <label class="environmentCustImg">
@@ -145,10 +120,8 @@
         </div>
       </label>
     </div>
-        <!--    javascript get agents-->
-    <!--    slider-->
 
-    <h1> Agents</h1>
+    <h1 id="h1Agent"> Agents</h1>
     <div class="agentBtns">
       <div class="agentBtn">
         <input type="radio" class="btn-check" name="options" id="option1" autocomplete="off">
@@ -192,27 +165,21 @@
       </div>
     </div>
 
-
-
     <div class="submitModel">
       <button type="button" class="btn btn-primary btn-lg btn-block" onclick="modelSelected()">
         Submit button
       </button>
     </div>
 
-        <!--    javascript get agents-->
-<!--        <div class="btn-group" data-toggle="buttons" id="topButtonDiv" >-->
-<!--          <button type="button" class="btn btn-primary">RadBtn1-->
-<!--          <input type="radio" id="radio1" ></button>-->
-<!--          <button type="button" class="btn btn-primary">RadBtn2-->
-<!--          <input type="radio" id="radio2" > </button>-->
-<!--          <button type="button" class="btn btn-primary">RadBtn3-->
-<!--          <input  type="radio" id="radio7"> </button>-->
-<!--        </div>-->
-
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
   </body>
 
 </html>
