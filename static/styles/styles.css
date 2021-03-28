@@ -30,7 +30,11 @@ input[type=file] {
 }
 
 .environmentCustImg {
-    margin-left: 20px;
+    padding-right:20px;
+}
+
+.environmentCustImg:first-child {
+    padding-left:20px;
 }
 
 .indexImg {
@@ -44,9 +48,13 @@ input[type=file] {
 
 .agentBtn {
     margin-top: 10px;
-    margin-left:20px;
+    padding-right:20px;
     /*margin-right:20px;*/
     float:left;
+}
+
+.agentBtn:first-child {
+    padding-left: 20px;
 }
 
 /*
@@ -117,7 +125,7 @@ h1 {
 
 .hyperparameter input[type=range] {
     /*display: inline-block;*/
-    width:50%;
+    width:40%;
     float:left;
     padding-left:20px;
     padding-right:20px;
@@ -134,7 +142,7 @@ h1 {
 .hyperparameters label {
     float:left;
     padding-left:20px;
-    width:150px;
+    width:175px;
 }
 
 /*
