@@ -62,3 +62,21 @@ function load(btn) {
     btn.style.display = "none";
 }
 
+function file_exists(url){
+    var http = new XMLHttpRequest();
+
+    http.open('HEAD', url, false);
+    http.send();
+
+    return http.status != 404;
+}
+
+window.onload = function () {
+    imgs = document.getElementsByClassName("indexImg");
+    for (var i = 0; i < imgs.length; i++) {
+        if (!file_exists(imgs[i].src)) {
+            console.log(imgs[i].src)
+            imgs[i].src = "/static/img/noImg.png";
+        }
+    }
+}

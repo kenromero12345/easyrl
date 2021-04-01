@@ -47,122 +47,138 @@
 
     <h1> Environments</h1>
     <div class="environmentBtns">
-      <label class="environmentCustImg">
+      {% for e in envName %}
+        <label class="environmentCustImg">
 
-        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv1" autocomplete="off">
-        <img class="indexImg" src="{{ url_for('static',filename='img/tempImg1.png') }}"/>
+          <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="{{e}}" autocomplete="off">
+          <img class="indexImg" src="{{ url_for('static', filename='img/' + e + '.jpg') }}"/>
+          <div class="environmentLblContainer">
+            <label class="btn btn-secondary" for="{{e}}">{{e}}</label>
+          </div>
+        </label>
+      {% endfor %}
+<!--      <label class="environmentCustImg">-->
 
-        <div class="environmentLblContainer">
-          <label class="btn btn-secondary" for="optionEnv1">Radio1</label>
-        </div>
-      </label>
-      <label class="environmentCustImg">
+<!--        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv1" autocomplete="off">-->
+<!--        <img class="indexImg" src="{{ url_for('static',filename='img/tempImg1.png') }}"/>-->
 
-        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv2" autocomplete="off">
-        <img class="indexImg" src="{{ url_for('static',filename='img/tempImg2.png') }}"/>
+<!--        <div class="environmentLblContainer">-->
+<!--          <label class="btn btn-secondary" for="optionEnv1">Radio1</label>-->
+<!--        </div>-->
+<!--      </label>-->
+<!--      <label class="environmentCustImg">-->
 
-        <div class="environmentLblContainer">
-        <label class="btn btn-secondary" for="optionEnv2">Radio2</label>
-        </div>
-      </label>
-      <label class="environmentCustImg">
+<!--        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv2" autocomplete="off">-->
+<!--        <img class="indexImg" src="{{ url_for('static',filename='img/tempImg2.png') }}"/>-->
 
-        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv3" autocomplete="off">
-        <img class="indexImg" src="{{ url_for('static',filename='img/tempImg3.png') }}"/>
+<!--        <div class="environmentLblContainer">-->
+<!--        <label class="btn btn-secondary" for="optionEnv2">Radio2</label>-->
+<!--        </div>-->
+<!--      </label>-->
+<!--      <label class="environmentCustImg">-->
 
-        <div class="environmentLblContainer">
-        <label class="btn btn-secondary" for="optionEnv3">Radio3</label>
-        </div>
-      </label>
-      <label class="environmentCustImg">
+<!--        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv3" autocomplete="off">-->
+<!--        <img class="indexImg" src="{{ url_for('static',filename='img/tempImg3.png') }}"/>-->
 
-        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv4" autocomplete="off">
-        <img class="indexImg" src="{{ url_for('static',filename='img/tempImg3.png') }}"/>
+<!--        <div class="environmentLblContainer">-->
+<!--        <label class="btn btn-secondary" for="optionEnv3">Radio3</label>-->
+<!--        </div>-->
+<!--      </label>-->
+<!--      <label class="environmentCustImg">-->
 
-        <div class="environmentLblContainer">
-        <label class="btn btn-secondary" for="optionEnv4">Radio4</label>
-        </div>
-      </label>
-      <label class="environmentCustImg">
+<!--        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv4" autocomplete="off">-->
+<!--        <img class="indexImg" src="{{ url_for('static',filename='img/tempImg3.png') }}"/>-->
 
-        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv5" autocomplete="off">
-        <img class="indexImg" src="{{ url_for('static',filename='img/tempImg3.png') }}"/>
+<!--        <div class="environmentLblContainer">-->
+<!--        <label class="btn btn-secondary" for="optionEnv4">Radio4</label>-->
+<!--        </div>-->
+<!--      </label>-->
+<!--      <label class="environmentCustImg">-->
 
-        <div class="environmentLblContainer">
-        <label class="btn btn-secondary" for="optionEnv5">Radio5</label>
-        </div>
-      </label>
-      <label class="environmentCustImg">
+<!--        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv5" autocomplete="off">-->
+<!--        <img class="indexImg" src="{{ url_for('static',filename='img/tempImg3.png') }}"/>-->
 
-        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv6" autocomplete="off">
-        <img class="indexImg" src="{{ url_for('static',filename='img/tempImg3.png') }}"/>
+<!--        <div class="environmentLblContainer">-->
+<!--        <label class="btn btn-secondary" for="optionEnv5">Radio5</label>-->
+<!--        </div>-->
+<!--      </label>-->
+<!--      <label class="environmentCustImg">-->
 
-        <div class="environmentLblContainer">
-        <label class="btn btn-secondary" for="optionEnv6">Radio6</label>
-        </div>
-      </label>
-      <label class="environmentCustImg">
+<!--        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv6" autocomplete="off">-->
+<!--        <img class="indexImg" src="{{ url_for('static',filename='img/tempImg3.png') }}"/>-->
 
-        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv7" autocomplete="off">
-        <img class="indexImg" src="{{ url_for('static',filename='img/tempImg3.png') }}"/>
+<!--        <div class="environmentLblContainer">-->
+<!--        <label class="btn btn-secondary" for="optionEnv6">Radio6</label>-->
+<!--        </div>-->
+<!--      </label>-->
+<!--      <label class="environmentCustImg">-->
 
-        <div class="environmentLblContainer">
-        <label class="btn btn-secondary" for="optionEnv7">RadioLongLongLongLongLongLongLongLongLongLong7</label>
-        </div>
-      </label>
-      <label class="environmentCustImg">
+<!--        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv7" autocomplete="off">-->
+<!--        <img class="indexImg" src="{{ url_for('static',filename='img/tempImg3.png') }}"/>-->
 
-        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv8" autocomplete="off">
-        <img class="indexImg" src="{{ url_for('static',filename='img/tempImg3.png') }}"/>
+<!--        <div class="environmentLblContainer">-->
+<!--        <label class="btn btn-secondary" for="optionEnv7">RadioLongLongLongLongLongLongLongLongLongLong7</label>-->
+<!--        </div>-->
+<!--      </label>-->
+<!--      <label class="environmentCustImg">-->
 
-        <div class="environmentLblContainer">
-        <label class="btn btn-secondary" for="optionEnv8">RadioLongLongLongLongLongLongLongLongLongLong8</label>
-        </div>
-      </label>
+<!--        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv8" autocomplete="off">-->
+<!--        <img class="indexImg" src="{{ url_for('static',filename='img/tempImg3.png') }}"/>-->
+
+<!--        <div class="environmentLblContainer">-->
+<!--        <label class="btn btn-secondary" for="optionEnv8">RadioLongLongLongLongLongLongLongLongLongLong8</label>-->
+<!--        </div>-->
+<!--      </label>-->
     </div>
 
     <h1 id="h1Agent"> Agents</h1>
     <div class="agentBtns">
-      <div class="agentBtn">
-        <input type="radio" class="btn-check" name="options" id="option1" autocomplete="off">
-        <label class="btn btn-secondary" for="option1">Radio-Agent 1</label>
-      </div>
-      <div class="agentBtn">
-        <input type="radio" class="btn-check" name="options" id="option2" autocomplete="off">
-        <label class="btn btn-secondary" for="option2">Radio-Agent 2</label>
-      </div>
-      <div class="agentBtn">
-        <input type="radio" class="btn-check" name="options" id="option3" autocomplete="off">
-        <label class="btn btn-secondary" for="option3">Radio-Agent 3</label>
-      </div>
-      <div class="agentBtn">
-        <input type="radio" class="btn-check" name="options" id="option4" autocomplete="off">
-        <label class="btn btn-secondary" for="option4">Radio-Agent 4</label>
-      </div>
-      <div class="agentBtn">
-        <input type="radio" class="btn-check" name="options" id="option5" autocomplete="off">
-        <label class="btn btn-secondary" for="option5">Radio-Agent 5</label>
-      </div>
-      <div class="agentBtn">
-        <input type="radio" class="btn-check" name="options" id="option6" autocomplete="off">
-        <label class="btn btn-secondary" for="option6">Radio-Agent 6</label>
-      </div>
-      <div class="agentBtn">
-        <input type="radio" class="btn-check" name="options" id="option7" autocomplete="off">
-        <label class="btn btn-secondary" for="option7">Radio-Agent 7</label>
-      </div>
-      <div class="agentBtn">
-        <input type="radio" class="btn-check" name="options" id="option8" autocomplete="off">
-        <label class="btn btn-secondary" for="option8">Radio-Agent 8</label>
-      </div>
-      <div class="agentBtn">
-        <input type="radio" class="btn-check" name="options" id="option9" autocomplete="off">
-        <label class="btn btn-secondary" for="option9">Radio-Agent 9</label>
-      </div>
-      <div class="agentBtn">
-        <input type="radio" class="btn-check" name="options" id="option10" autocomplete="off">
-        <label class="btn btn-secondary" for="option10">Radio-Agent 10</label>
-      </div>
+      {% for a in agtName %}
+        <div class="agentBtn">
+          <input type="radio" class="btn-check" name="options" id="{{a}}" autocomplete="off">
+          <label class="btn btn-secondary" for="{{a}}">{{a}}</label>
+        </div>
+      {% endfor %}
+<!--      <div class="agentBtn">-->
+<!--        <input type="radio" class="btn-check" name="options" id="option1" autocomplete="off">-->
+<!--        <label class="btn btn-secondary" for="option1">Radio-Agent 1</label>-->
+<!--      </div>-->
+<!--      <div class="agentBtn">-->
+<!--        <input type="radio" class="btn-check" name="options" id="option2" autocomplete="off">-->
+<!--        <label class="btn btn-secondary" for="option2">Radio-Agent 2</label>-->
+<!--      </div>-->
+<!--      <div class="agentBtn">-->
+<!--        <input type="radio" class="btn-check" name="options" id="option3" autocomplete="off">-->
+<!--        <label class="btn btn-secondary" for="option3">Radio-Agent 3</label>-->
+<!--      </div>-->
+<!--      <div class="agentBtn">-->
+<!--        <input type="radio" class="btn-check" name="options" id="option4" autocomplete="off">-->
+<!--        <label class="btn btn-secondary" for="option4">Radio-Agent 4</label>-->
+<!--      </div>-->
+<!--      <div class="agentBtn">-->
+<!--        <input type="radio" class="btn-check" name="options" id="option5" autocomplete="off">-->
+<!--        <label class="btn btn-secondary" for="option5">Radio-Agent 5</label>-->
+<!--      </div>-->
+<!--      <div class="agentBtn">-->
+<!--        <input type="radio" class="btn-check" name="options" id="option6" autocomplete="off">-->
+<!--        <label class="btn btn-secondary" for="option6">Radio-Agent 6</label>-->
+<!--      </div>-->
+<!--      <div class="agentBtn">-->
+<!--        <input type="radio" class="btn-check" name="options" id="option7" autocomplete="off">-->
+<!--        <label class="btn btn-secondary" for="option7">Radio-Agent 7</label>-->
+<!--      </div>-->
+<!--      <div class="agentBtn">-->
+<!--        <input type="radio" class="btn-check" name="options" id="option8" autocomplete="off">-->
+<!--        <label class="btn btn-secondary" for="option8">Radio-Agent 8</label>-->
+<!--      </div>-->
+<!--      <div class="agentBtn">-->
+<!--        <input type="radio" class="btn-check" name="options" id="option9" autocomplete="off">-->
+<!--        <label class="btn btn-secondary" for="option9">Radio-Agent 9</label>-->
+<!--      </div>-->
+<!--      <div class="agentBtn">-->
+<!--        <input type="radio" class="btn-check" name="options" id="option10" autocomplete="off">-->
+<!--        <label class="btn btn-secondary" for="option10">Radio-Agent 10</label>-->
+<!--      </div>-->
     </div>
 
     <div class="submitModel">

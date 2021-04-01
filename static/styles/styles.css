@@ -4,6 +4,8 @@ body {
     overflow-x: hidden;
 }
 
+
+
 /*page 1 and 2*/
 input[type=file] {
     display:none;
