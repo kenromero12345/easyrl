@@ -48,15 +48,18 @@
     <h1> Environments</h1>
     <div class="environmentBtns">
       {% for e in envName %}
-        <label class="environmentCustImg">
-
-          <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="{{e}}" autocomplete="off">
-          <img class="indexImg" src="{{ url_for('static', filename='img/' + e + '.jpg') }}"/>
-          <div class="environmentLblContainer">
-            <label class="btn btn-secondary" for="{{e}}">{{e}}</label>
-          </div>
-        </label>
+        <div class="environmentCustImg">
+          <input type="radio" class="btn-check" name="optionsEnv" id="{{e}}" autocomplete="off"
+                 onclick="envUpdate(this,{{allowedEnvs}}, {{allowedAgents}})">
+          <label class="btn btn-outline-secondary" for="{{e}}">
+            <div>
+              <img class="indexImg" src="{{ url_for('static', filename='img/' + e + '.jpg') }}"/>
+            </div>
+            {{e}}
+          </label>
+        </div>
       {% endfor %}
+
 <!--      <label class="environmentCustImg">-->
 
 <!--        <input type="radio" class="btn-check, environmentInput" name="optionsEnv" id="optionEnv1" autocomplete="off">-->
@@ -135,8 +138,9 @@
     <div class="agentBtns">
       {% for a in agtName %}
         <div class="agentBtn">
-          <input type="radio" class="btn-check" name="options" id="{{a}}" autocomplete="off">
-          <label class="btn btn-secondary" for="{{a}}">{{a}}</label>
+          <input type="radio" class="btn-check" name="options" id="{{a}}" autocomplete="off"
+                 onclick="agUpdate(this,{{allowedEnvs}}, {{allowedAgents}})">
+          <label class="btn btn-outline-secondary" for="{{a}}">{{a}}</label>
         </div>
       {% endfor %}
 <!--      <div class="agentBtn">-->

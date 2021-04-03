@@ -11,7 +11,8 @@ app = Flask(__name__)
 @app.route('/')
 @app.route('/index')
 def indexPage():
-    return render_template('index.html', envName=envName, agtName=agtName)
+    return render_template('index.html', envName=envName, agtName=agtName, allowedEnvs=allowedEnvs,
+                           allowedAgents=allowedAgents)
 
 @app.route('/model/<environment>/<agent>')
 def modelPage(environment, agent):

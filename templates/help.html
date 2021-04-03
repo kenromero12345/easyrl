@@ -32,10 +32,160 @@
       </div>
     </nav>
 
-    <h1 class="h1Start">Help</h1>
+<!--    <h1 class="h1Start">Help</h1>-->
     <div class="helpContainer">
-      <h2>Tutorial</h2>
-      <h3>Somethin....something</h3>
+<!--      <h2>Tutorial</h2>-->
+      <p>
+        Welcome to Portal RL - A user friendly environment for learning and deploying reinforcement learning
+        environments and agents
+
+
+        MAIN WORK AREA (Tab X)
+
+          - Getting Started:
+
+            1) Number of episodes -
+               This parameter is used to define how many times the program should run the same
+               simulation. Depending on the complexity of the model, a user might choose to run the simulation
+               thousands of times to learn an optimal policy for the task it is trying to perform.
+               NEW USER TIP:
+               We recommend starting with a low number of episodes and gradually increasing the amount
+               This will give you a sense of how reinforcement learning works and the affect
+               the number of episodes has on various agent/environment interactions.
+
+            2) Max Steps -
+               This number dictates how many actions will be taken during each episode before a training
+               is concluded
+               NEW USER TIP:
+               Arbitrarily large numbers of steps don't always work out to better learning. Some of the
+               suggested starting environments have a limited size. As you become more familiar with the
+               environments you will get a feel for how many steps it should take to find an optimal policy
+               and can adjust accordingly. You will learn that some reinforcement learning programs take a
+               large number of episodes (which can include multiple days of training) and an ideal number of
+               steps will allow an agent to run episodes efficiently.
+
+            3) Select Environment -
+               This drop down menu will allow you to select a reinforcement learning environment
+               from the available python gym sandboxes including a selection of atari games
+               NEW USER TIP:
+               We recommend starting with CartPole, CartPole Discrete, FrozenLake, Pendulum, Acrobat, or
+               MountainCar. As you become more in tune with how these environments work move into the atari
+               games, and if you feel inspired we hope you explore the internet for ways to develop your own
+               environments and interact with our API (Found in our Advanced Options section).
+
+            4) Select Agent -
+               This drop down menu contains several of the most studied reinforcement learning
+               algorithms to match to your environment.
+               NEW USER TIP:
+               Don't worry, we have installed some guard rails to keep you from matching agents and
+               environments that don't work together. As you study how reinforcement learning works you will
+               understand why those combinations don't work together.
+
+            5) Set Model -
+               Once you have selected an environment and an agent this will open the training interface.
+
+           - Training Interface -
+
+             1) Gamma -
+                This value (0 <= X <= 1) represents the discount that the reinforcement learning agents assign to
+                future rewards when calculating the value of a being between one action and the next. How this is
+                done varies from algorithm to algorithm.
+                NEW USER TIP:
+                This value is, in almost all circumstances, very close to one.
+
+             2) Min/Max Epsilon and Decay Rate -
+                This value represents the proportion of time an agent should choose a random action or consult
+                its policy. A value of 1 means that it will always choose a random action and a value of 0 means it
+                will always consult the policy. This is set to the Max value initially and decrements at
+                intervals by the decay rate during training. When testing these should be set to zero.
+
+             3) Batch Size -
+                When training a neural network this is the size of the group of actions and rewards that the
+                network will consider each time while training its decision process. In any neural network this is
+                a value that is fine tuned through testing.
+
+             4) Memory size -
+                This is the maximimum number of state, action, and reward tuples that are stored for reference
+                by the agent.
+
+             5) History Length -
+                Neural networks often rely on information that is gained from its perception of the environment, and
+                in environments that a single image doesn't tell the user much about what is happening in a given
+                state this variable determines the number of chronological frames that a neural network will
+                consider when updating its policy.
+
+             6) Alpha -
+                Alpha is another name for the learning rate or step size. It defines the impact new information has
+                when overwriting previous values.
+
+             7) Train -
+                Locks in current parameters and initiates training of the agent. Will display statistical
+                information about the training process in the readout space.
+
+             8) Halt -
+                Prematurely ends the current session of training or testing.
+
+             9) Test -
+                Set the agent to perform in the environment exclusively according to the current policy and
+                returns results. NOTE: It is advised that the user sets epsilon to zero during testing at this
+                time. It will occasionally produce a bug otherwise. This will be fixed in a future patch.
+
+            10) Save Agent -
+                Saves the state of the current agent to a file.
+
+            11) Load Agent -
+                Opens a file selection window that allows the user to select an agent to be loaded. The agent
+                must match the Agent/Environment combination selected during the Start Screen of the tab.
+
+            12) Reset -
+                Sets the parameters and the agent state to the default.
+
+            13) Save Results -
+                Opens a file selection window and allows the user to write a save file containing the results of
+                training or testing an agent/environment interaction as a csv file.   TABS AND BUTTONS AND VISUALS
+
+           1) Tabs -
+              Each tab is a new thread that works on a different agent/environment combination. Add new tabs by
+              clicking the plus button.
+
+           2) Close Current Tab -
+              This will end the thread being run by the tab and close the tab.
+
+           3) Reset Current Tab -
+              Ends the thread and sets the tab to its opening default state.
+
+           4) Load Environment -
+              Opens a file selection window that allows the user to load a custom built environment into the set
+              of environments in the dropdown menu.
+
+           5) Load Agent -
+              Opens a file selection window and allows the user to load a custom built agent in the set of agents
+              in the dropdown menu.
+
+           6) Legend -
+              MSE - Mean squared error for recording the loss of an agent/environment interaction
+              Episode Reward - The resulting reward achieved during an episode
+              Epsilon - The current epsilon value during training
+              These contribute to a readout of the performance of an agent/environment interaction.
+
+         Advanced - API information:
+
+           The Portal API requires methods for environments and agents as follows -
+
+           - Environment:
+             Must extend the environment abstract class and contain all abstract methods within and as set forth
+             in the API documentation.
+
+           - Agent:
+             Must extend the abstract modelBasedAgent or modelFreeAgent class from the Agents library or one of
+             their child classes and contain all methods therein described by that class and the abstract Agent
+             class and as set forth in the API documentation.
+
+            the 'display episode speed' parameter can be changed mid-simulation to adjust how quickly the rendering runs. Keep in mind
+            that each loop is showing the most recent episode, so if you set it high it will often repeat the same episode and if set
+            low it will often skip episodes.
+
+      </p>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
