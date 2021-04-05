@@ -1,6 +1,6 @@
 from flask import Flask, render_template, g
 import time
-from Agents import qLearning, drqn, deepQ, adrqn, doubleDuelingQNative, drqnNative, drqnConvNative, ppoNative, \
+from Agents import qLearning, drqn, deepQ, adrqn, agent as ag, doubleDuelingQNative, drqnNative, drqnConvNative, ppoNative, \
     reinforceNative, actorCriticNative, cem, npg, ddpg, sac, trpo, rainbow
 from Environments import cartPoleEnv, cartPoleEnvDiscrete, atariEnv, frozenLakeEnv, pendulumEnv, acrobotEnv, \
     mountainCarEnv
@@ -16,7 +16,22 @@ def indexPage():
 
 @app.route('/model/<environment>/<agent>')
 def modelPage(environment, agent):
-    return render_template('model.html', environment=environment, agent=agent)
+    for curAgent in agents:
+        if agent == curAgent.displayName:
+            agent = curAgent
+            break
+    for curEnv in environments:
+        if environment == curEnv.displayName:
+            environment = curEnv
+            break
+
+    params = [ag.Agent.Parameter('Number of Episodes', 1, 655360, 1, 1000, True, True,
+                                    "The number of episodes to run the model on"),
+              ag.Agent.Parameter('Max Size', 1, 655360, 1, 200, True, True,
+                                    "The max number of timesteps permitted in an episode")]
+    for param in agent.parameters:
+        params.append(param)
+    return render_template('model.html', environment=environment, agent=agent, params=params)
 
 @app.route('/about')
 def aboutPage():

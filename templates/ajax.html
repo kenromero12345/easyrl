@@ -1,51 +1,73 @@
 <!doctype html>
 <html lang="en">
-  <head>
+<head>
     <title>EasyRL</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  </head>
-  <body>
+</head>
+<body>
     <h1>Ajax Test</h1>
-    <button type="button" class="btn btn-primary btn-lg btn-block">
-      Submit button
-    </button>
-    <input type="number" value=1>
+<!--    <button type="button" class="btn btn-primary btn-lg btn-block">-->
+<!--      Submit button-->
+<!--    </button>-->
+<!--    <input type="number" value=1>-->
     <script>
-
-
+        console.log("start training")
         $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-        $(function() {
-            $('button').bind('click', function() {
-<!--              $.getJSON($SCRIPT_ROOT + '/add1Infinity', {-->
-<!--                input: $('input').val()-->
+        $.getJSON($SCRIPT_ROOT + '/startTrain', {
+        }, function(data) {
+            var episode = data.result;
+            console.log(episode)
+<!--            var breakFlag = false;-->
+<!--            while (breakFlag) {-->
+<!--                breakFlag = false;-->
+            for (i = 0; i < 1000; i++) {
+                $.getJSON($SCRIPT_ROOT + '/runTrain', {
+                }, function(data) {
+                    console.log(data.loss)
+<!--                    breakFlag = false;-->
+<!--                    if (data.finished) {-->
+<!--                        breakFlag = false;-->
+<!--                    }-->
+                });
+<!--            }-->
+            }
+        });
+  </script>
+
+
+<!--        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};-->
+<!--        $(function() {-->
+<!--            $('button').bind('click', function() {-->
+<!--&lt;!&ndash;              $.getJSON($SCRIPT_ROOT + '/add1Infinity', {&ndash;&gt;-->
+<!--&lt;!&ndash;                input: $('input').val()&ndash;&gt;-->
+<!--&lt;!&ndash;              }, function(data) {&ndash;&gt;-->
+<!--&lt;!&ndash;                $("input").attr('value', data.result);&ndash;&gt;-->
+<!--&lt;!&ndash;              });&ndash;&gt;-->
+<!--&lt;!&ndash;              return false;&ndash;&gt;-->
+
+<!--              $.getJSON($SCRIPT_ROOT + '/add1Initialize', {-->
 <!--              }, function(data) {-->
-<!--                $("input").attr('value', data.result);-->
+<!--                episode = data.result;-->
+<!--                for (i = 0; i < episode; i++) {-->
+<!--                  $.getJSON($SCRIPT_ROOT + '/add1', {-->
+<!--                  }, function(data) {-->
+<!--                    console.log(data.result)-->
+<!--                    $("input").attr('value', data.result);-->
+<!--                  });-->
+<!--                }-->
 <!--              });-->
 <!--              return false;-->
+<!--            });-->
+<!--         });-->
 
-              $.getJSON($SCRIPT_ROOT + '/add1Initialize', {
-              }, function(data) {
-                episode = data.result;
-                for (i = 0; i < episode; i++) {
-                  $.getJSON($SCRIPT_ROOT + '/add1', {
-                  }, function(data) {
-                    console.log(data.result)
-                    $("input").attr('value', data.result);
-                  });
-                }
-              });
-              return false;
-            });
-         });
-
-<!--         messages = get_flashed_messages()-->
-<!--         if (messages) {-->
-<!--&lt;!&ndash;          for (i = 0; i < messages.length; i++) {&ndash;&gt;-->
-<!--&lt;!&ndash;            $("input").attr('value', message[i]);&ndash;&gt;-->
-<!--&lt;!&ndash;          }&ndash;&gt;-->
-<!--            $("input").attr('value', message[0])-->
-<!--         }-->
-    </script>
-  </body>
+<!--&lt;!&ndash;         messages = get_flashed_messages()&ndash;&gt;-->
+<!--&lt;!&ndash;         if (messages) {&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;          for (i = 0; i < messages.length; i++) {&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;            $("input").attr('value', message[i]);&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;          }&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;            $("input").attr('value', message[0])&ndash;&gt;-->
+<!--&lt;!&ndash;         }&ndash;&gt;-->
+<!--    </script>-->
+</body>
 
 </html>
