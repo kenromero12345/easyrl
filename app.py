@@ -1,11 +1,14 @@
-from flask import Flask, render_template, g
+from flask import Flask, render_template, g, request, jsonify
 import time
 from Agents import qLearning, drqn, deepQ, adrqn, agent as ag, doubleDuelingQNative, drqnNative, drqnConvNative, ppoNative, \
     reinforceNative, actorCriticNative, cem, npg, ddpg, sac, trpo, rainbow
 from Environments import cartPoleEnv, cartPoleEnvDiscrete, atariEnv, frozenLakeEnv, pendulumEnv, acrobotEnv, \
     mountainCarEnv
 from Agents.sarsa import sarsa
-
+from MVC import model
+import threading
+import queue
+from MVC.model import Model
 app = Flask(__name__)
 
 @app.route('/')
@@ -14,24 +17,85 @@ def indexPage():
     return render_template('index.html', envName=envName, agtName=agtName, allowedEnvs=allowedEnvs,
                            allowedAgents=allowedAgents)
 
+@app.route('/custEnv')
+def custEnv():
+    file = request.args.get('file')
+    print(file)
+    return jsonify(result=1000)
+
 @app.route('/model/<environment>/<agent>')
 def modelPage(environment, agent):
     for curAgent in agents:
         if agent == curAgent.displayName:
-            agent = curAgent
+            mod.agent_class = curAgent
             break
     for curEnv in environments:
         if environment == curEnv.displayName:
-            environment = curEnv
+            mod.environment_class = curEnv
             break
-
+    mod.reset()
     params = [ag.Agent.Parameter('Number of Episodes', 1, 655360, 1, 1000, True, True,
                                     "The number of episodes to run the model on"),
               ag.Agent.Parameter('Max Size', 1, 655360, 1, 200, True, True,
                                     "The max number of timesteps permitted in an episode")]
-    for param in agent.parameters:
+    for param in mod.agent_class.parameters:
         params.append(param)
-    return render_template('model.html', environment=environment, agent=agent, params=params)
+    return render_template('model.html', params=params) # environment=environment, agent=agent
+
+@app.route('/startTrain')
+def startTrain():
+    if mod.isRunning:
+        return jsonify(episodes=0)
+    else:
+        global inputParams
+        inputParams = []
+
+        temp = request.args.get('0')
+        i = 0
+        while temp is not None:
+            inputParams.append(float(temp))
+            i += 1
+            temp = request.args.get(str(i))
+
+        threading.Thread(target=mod.run_learning, args=[msg, ] + inputParams).start()
+        return jsonify(episodes=inputParams[0])
+
+@app.route('/runTrain')
+def runTrain():
+    temp = msg.get(block=True)
+    episodeAccLoss= 0
+    episodeAccEpsilon = 0
+    episodeAccReward = 0
+    while temp.data != Model.Message.EPISODE:
+        if temp.type == Model.Message.STATE:
+            if temp.data.loss:
+                episodeAccLoss += temp.data.loss
+            if temp.data.epsilon:
+                episodeAccEpsilon += temp.data.epsilon
+            if temp.data.reward:
+                episodeAccReward += temp.data.reward
+        temp = msg.get(block=True)
+
+
+
+    # print(inputParams[1])
+    return jsonify(loss=episodeAccLoss/inputParams[1], reward=episodeAccReward,
+                   epsilon=episodeAccEpsilon/inputParams[1]) #inputParams[1] is max size the hyperparameter
+
+@app.route('/halt')
+def halt():
+    print("halting")
+    if mod.isRunning:
+    #     print("halted")
+        mod.halt_learning()
+
+@app.route('/reset')
+def reset():
+    print("reset")
+    if mod.isRunning:
+    #     print("halted")
+        mod.halt_learning()
+    mod.reset()
 
 @app.route('/about')
 def aboutPage():
@@ -103,4 +167,9 @@ if __name__ == "__main__":
 
     envName = [opt.displayName for opt in environments]
     agtName = [opt.displayName for opt in agents]
+    msg = queue.Queue()
+    mod = model.Model()
+    params = None
+    global inputParams
+    inputParams = []
     app.run()

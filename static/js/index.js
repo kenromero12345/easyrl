@@ -55,12 +55,12 @@ function modelSelected() {
 //}
 
 
-function load(btn) {
-    /*TODO: what do you do to the uploaded file*/
-    input = btn.previousElementSibling;
-    input.style.display = "none";
-    btn.style.display = "none";
-}
+//function load(btn) {
+//    /*TODO: what do you do to the uploaded file*/
+//    input = btn.previousElementSibling;
+//    input.style.display = "none";
+//    btn.style.display = "none";
+//}
 
 function file_exists(url){
     var http = new XMLHttpRequest();

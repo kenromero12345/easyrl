@@ -6,11 +6,12 @@
 </head>
 <body>
     <h1>Ajax Test</h1>
-<!--    <button type="button" class="btn btn-primary btn-lg btn-block">-->
-<!--      Submit button-->
-<!--    </button>-->
+    <button type="button" class="btn btn-primary btn-lg btn-block" onclick="something()">
+      Submit button
+    </button>
 <!--    <input type="number" value=1>-->
     <script>
+        function something() {
         console.log("start training")
         $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
         $.getJSON($SCRIPT_ROOT + '/startTrain', {
@@ -32,6 +33,7 @@
 <!--            }-->
             }
         });
+        }
   </script>
 
 

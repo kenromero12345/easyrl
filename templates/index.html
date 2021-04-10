@@ -1,13 +1,14 @@
 <!doctype html>
 <html lang="en">
     <head>
+
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
               integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
         <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/styles.css') }}">
         <script type=text/javascript src="{{  url_for('static', filename='js/index.js') }}"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script type=text/javascript src="{{  url_for('static', filename='js/combined.js') }}"></script>
         <title>EasyRL</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     </head>
     <body>
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -34,15 +35,37 @@
             </div>
         </nav>
 
+        <script>
+            function loadCustEnv(btn) {
+<!--                input = btn.previousElementSibling-->
+<!--                console.log(input.files[0])-->
+<!--                input.style.display = "none";-->
+<!--                btn.style.display = "none";-->
+<!--                window.alert("Custom Environment Uploaded");-->
+<!--                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};-->
+<!--                $.getJSON($SCRIPT_ROOT + '/custEnv', {-->
+<!--                    file: input.files[0]-->
+<!--                }, function(data) {-->
+<!--                });-->
+                window.alert("Not Implemented");
+            }
+
+            function loadCustAg(btn) {
+                window.alert("Not Implemented");
+            }
+        </script>
+
         <div class="topBtn">
             <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
                     onClick="makeLoadVisible(this)">Load Custom Environment</button>
-            <input class="form-control" type="file" onchange="load()"/>
-            <button type="button" class="btn btn-primary btn-lg btn-block, loadBtn" onClick="load(this)">Upload</button>
+            <input class="form-control" type="file"/>
+            <button type="button" class="btn btn-primary btn-lg btn-block, loadBtn"
+                    onClick="loadCustEnv(this)">Upload</button>
             <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
                     onClick="makeLoadVisible(this)">Load Custom Agent</button>
-            <input class="form-control" type="file" onchange="load()"/>
-            <button type="button" class="btn btn-primary btn-lg btn-block, loadBtn" onClick="load(this)">Upload</button>
+            <input class="form-control" type="file"/>
+            <button type="button" class="btn btn-primary btn-lg btn-block, loadBtn"
+                    onClick="loadCustAg(this)">Upload</button>
         </div>
 
         <h1> Environments</h1>
@@ -191,9 +214,9 @@
             </button>
         </div>
 
-        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-                integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-                crossorigin="anonymous"></script>
+<!--        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"-->
+<!--                integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"-->
+<!--                crossorigin="anonymous"></script>-->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
                 integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
                 crossorigin="anonymous"></script>

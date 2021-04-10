@@ -35,11 +35,14 @@
         </nav>
 
         <div class="topBtn">
-            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons">Train</button>
-            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons">Halt</button>
-            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons">Test</button>
-            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
-            >Reset</button>
+            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" onclick="train()">
+                Train</button>
+            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" onclick="halt()">
+                Halt</button>
+            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" onclick="test()">
+                Test</button>
+            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" onclick="reset()">
+                Reset</button>
             <!--      onclick="window.location.href='/index';"-->
             <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
                     onClick="makeLoadVisible(this)">Load Model</button>
@@ -63,11 +66,11 @@
         <div class="modelLeft">
             {% for p in params %}
             <div class="hyperparameters">
-                <label for="customRange1" class="form-label">{{p.name}}</label>
+                <label for="{{p.name}} range" class="form-label">{{p.name}}</label>
                 <div class="hyperparameter">
-                    <input type="range" class="form-range" id="customRange1" min={{p.min}} max={{p.max}}
+                    <input type="range" class="form-range" id="{{p.name}} range" min={{p.min}} max={{p.max}}
                            value={{p.default}} step={{p.resolution}} onchange="updateSlider(this)">
-                    <input class="form-control, customInput" type="number" id="customInput1" value={{p.default}}
+                    <input class="form-control, customInput" type="number" id="{{p.name}} number" value={{p.default}}
                            onchange="updateInput(this)">
                 </div>
             </div>
@@ -110,15 +113,273 @@
             <img class="modelImg" src="{{ url_for('static',filename='img/tempEnv.png') }}"/>
         </div>
 
-        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-                integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-                crossorigin="anonymous"></script>
+<!--        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"-->
+<!--                integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"-->
+<!--                crossorigin="anonymous"></script>-->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
                 integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
                 crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
                 integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
                 crossorigin="anonymous"></script>
+
+        <script>
+            var dpsLoss = []; // dataPoints
+            var dpsReward = []
+            var dpsEpsilon = []
+            var chart;
+            var xVal = 0;
+            var isRunning = false
+            var chart = null;
+            var isReset = false
+            window.onload = function () {
+                chart = createChart()
+
+<!--                //chart-->
+
+
+<!--                chart = new CanvasJS.Chart("chartContainer", {-->
+<!--                    title :{-->
+<!--                        text: "Dynamic Data"-->
+<!--                    },-->
+<!--                    legend: {-->
+<!--                        cursor: "pointer",-->
+<!--                        itemclick: toggleDataSeries-->
+<!--                    },-->
+<!--                    toolTip: {-->
+<!--                        shared: true-->
+<!--                    },-->
+<!--                    axisY:[{-->
+<!--                        title: "MSE Episode Loss",-->
+<!--                        lineColor: "red",-->
+<!--                        tickColor: "red",-->
+<!--                        labelFontColor: "red",-->
+<!--                        titleFontColor: "red",-->
+<!--                        includeZero: true,-->
+<!--                    },-->
+<!--                    {-->
+<!--                        title: "Reward",-->
+<!--                        lineColor: "green",-->
+<!--                        tickColor: "green",-->
+<!--                        labelFontColor: "green",-->
+<!--                        titleFontColor: "green",-->
+<!--                        includeZero: true,-->
+<!--                    },-->
+<!--                    {-->
+<!--                        title: "Epsilon",-->
+<!--                        lineColor: "blue",-->
+<!--                        tickColor: "blue",-->
+<!--                        labelFontColor: "blue",-->
+<!--                        titleFontColor: "blue",-->
+<!--                        includeZero: true,-->
+<!--                    }],-->
+<!--                    data: [{-->
+<!--                        type: "line",-->
+<!--                        name: "MSE Episode Loss",-->
+<!--                        dataPoints: dpsLoss,-->
+<!--                        showInLegend: true,-->
+<!--                        axisYIndex: 1,-->
+<!--                        color: "red",-->
+<!--                    }, {-->
+<!--                        type: "line",-->
+<!--                        name: "Reward",-->
+<!--                        dataPoints: dpsReward,-->
+<!--                        showInLegend: true,-->
+<!--                        axisYIndex: 0,-->
+<!--                        color: "green",-->
+<!--                    }, {-->
+<!--                        type: "line",-->
+<!--                        name: "Epsilon",-->
+<!--                        dataPoints: dpsEpsilon,-->
+<!--                        showInLegend: true,-->
+<!--                        axisYIndex: 2,-->
+<!--                        color: "blue",-->
+<!--                    }],-->
+<!--                    exportEnabled: true,-->
+<!--                    width: 600,-->
+<!--                    height:250,-->
+<!--                });-->
+
+<!--&lt;!&ndash;                var xVal = 0;&ndash;&gt;-->
+<!--&lt;!&ndash;                var yVal = 100;&ndash;&gt;-->
+<!--                var updateInterval = 100;-->
+<!--                var dataLength = 20; // number of dataPoints visible at any point-->
+
+<!--&lt;!&ndash;                var updateChart = function (count) {&ndash;&gt;-->
+
+<!--&lt;!&ndash;                    count = count || 1;&ndash;&gt;-->
+
+<!--&lt;!&ndash;                    for (var j = 0; j < count; j++) {&ndash;&gt;-->
+<!--&lt;!&ndash;                        yVal = yVal +  Math.round(5 + Math.random() *(-5-5));&ndash;&gt;-->
+<!--&lt;!&ndash;                        dps.push({&ndash;&gt;-->
+<!--&lt;!&ndash;                            x: xVal,&ndash;&gt;-->
+<!--&lt;!&ndash;                            y: yVal&ndash;&gt;-->
+<!--&lt;!&ndash;                        });&ndash;&gt;-->
+<!--&lt;!&ndash;                        xVal++;&ndash;&gt;-->
+<!--&lt;!&ndash;                  }&ndash;&gt;-->
+
+<!--&lt;!&ndash;            //        if (dps.length > dataLength) {&ndash;&gt;-->
+<!--&lt;!&ndash;            //          dps.shift();&ndash;&gt;-->
+<!--&lt;!&ndash;            //        }&ndash;&gt;-->
+
+
+<!--&lt;!&ndash;            };&ndash;&gt;-->
+<!--            chart.render();-->
+<!--&lt;!&ndash;            updateChart(dataLength);&ndash;&gt;-->
+<!--&lt;!&ndash;            setInterval(function(){updateChart()}, updateInterval);&ndash;&gt;-->
+
+
+<!--            //TODO: use the parameters <agent> and <environment>-->
+
+            }
+
+            function createChart() {
+                var chart = new CanvasJS.Chart("chartContainer", {
+                    title :{
+                        text: "Dynamic Data"
+                    },
+                    legend: {
+                        cursor: "pointer",
+                        itemclick: toggleDataSeries
+                    },
+                    toolTip: {
+                        shared: true
+                    },
+                    axisY:[{
+                        title: "MSE Episode Loss",
+                        lineColor: "red",
+                        tickColor: "red",
+                        labelFontColor: "red",
+                        titleFontColor: "red",
+                        includeZero: true,
+                    },
+                    {
+                        title: "Reward",
+                        lineColor: "green",
+                        tickColor: "green",
+                        labelFontColor: "green",
+                        titleFontColor: "green",
+                        includeZero: true,
+                    },
+                    {
+                        title: "Epsilon",
+                        lineColor: "blue",
+                        tickColor: "blue",
+                        labelFontColor: "blue",
+                        titleFontColor: "blue",
+                        includeZero: true,
+                    }],
+                    data: [{
+                        type: "line",
+                        name: "MSE Episode Loss",
+                        dataPoints: dpsLoss,
+                        showInLegend: true,
+                        axisYIndex: 1,
+                        color: "red",
+                    }, {
+                        type: "line",
+                        name: "Reward",
+                        dataPoints: dpsReward,
+                        showInLegend: true,
+                        axisYIndex: 0,
+                        color: "green",
+                    }, {
+                        type: "line",
+                        name: "Epsilon",
+                        dataPoints: dpsEpsilon,
+                        showInLegend: true,
+                        axisYIndex: 2,
+                        color: "blue",
+                    }],
+                    exportEnabled: true,
+                    width: 600,
+                    height:250,
+                });
+                chart.render()
+                return chart
+            }
+
+            function toggleDataSeries(e) {
+                if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+                    e.dataSeries.visible = false;
+                } else {
+                    e.dataSeries.visible = true;
+                }
+                e.chart.render();
+            }
+
+            function reset() {
+                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+                isRunning = false;
+                $.getJSON($SCRIPT_ROOT + '/reset')
+                isReset = true;
+            }
+
+            function halt() {
+                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+                isRunning = false;
+<!--                console.log("halt")-->
+                $.getJSON($SCRIPT_ROOT + '/halt')
+            }
+
+            function chartReset() {
+                dpsLoss = []
+                dpsReward = []
+                dpsEpsilon = []
+                xVal = 0
+                chart = createChart()
+            }
+
+            function train() {
+                var lists = document.querySelectorAll("input[type=range]");
+                var params = {}
+                for (var i = 0; i < lists.length; i++) {
+                    params[i] = lists[i].value;
+                }
+<!--                console.log(params)-->
+                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+                $.getJSON($SCRIPT_ROOT + '/startTrain', params, function(data) {
+                    isRunning = true;
+                    var episodes = data.episodes;
+<!--                    console.log(episodes)-->
+                    for (i = 0; i < episodes  && isRunning; i++) {
+                        console.log(isRunning)
+                        $.getJSON($SCRIPT_ROOT + '/runTrain', {
+                        }, function(data) {
+                            console.log(data.loss)
+                            dpsLoss.push({
+                                x: xVal,
+                                y: data.loss
+                            });
+                            dpsReward.push({
+                                x: xVal,
+                                y: data.reward
+                            });
+                            dpsEpsilon.push({
+                                x: xVal,
+                                y: data.epsilon
+                            });
+                            xVal++;
+                            chart.render();
+                        });
+                    }
+                    if (isReset) {
+                        chartReset()
+                        isReset = false
+                    }
+
+                    isRunning = false;
+                });
+<!--                $.ajax({-->
+<!--                      type: "GET",-->
+<!--                      url: $SCRIPT_ROOT + '/startTrain',-->
+<!--                      data: {params,-->
+<!--                      success: function (result) {-->
+<!--                           // do something here-->
+<!--                      }-->
+<!--                 });-->
+            }
+        </script>
     </body>
 
 </html>

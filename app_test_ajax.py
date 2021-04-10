@@ -50,12 +50,12 @@ def startTrain():
 @app.route('/runTrain')
 def runTrain():
     temp = msg.get(block=True)
-    episodeAccEpsilon= 0
+    episodeAccLoss= 0
     while temp.data != Model.Message.EPISODE:
         if temp.type == Model.Message.STATE:
-            episodeAccEpsilon += temp.data.loss
+            episodeAccLoss += temp.data.loss
         temp = msg.get(block=True)
-    return jsonify(loss=episodeAccEpsilon/200)
+    return jsonify(loss=episodeAccLoss/200)
 
     # train = None
     # finished = None
