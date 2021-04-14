@@ -81,10 +81,11 @@ class Model:
                     message = Model.Message(Model.Message.STATE, modelState)
                     messageQueue.put(message)
 
-                    if self.environment.done or self.isHalted:
+                    if self.isHalted or self.environment.done:
                         break
-                
-                self.agent.apply_hindsight()
+
+                if hasattr(self.agent, 'apply_hindsight') and callable(getattr(self.agent, 'apply_hindsight')):
+                    self.agent.apply_hindsight()
                 
                 if (self.cloudBridge is not None):
                     self.cloudBridge.submitEpisode(episode, int(total_episodes))

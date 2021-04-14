@@ -25,31 +25,14 @@ function load(btn) {
 }
 
 function makeSaveComponentsVisible(button) {
-    hideUploadDownload();
     input = button.nextElementSibling;
-    if (input.style.display == "none") {
+    downloadBtn = input.nextElementSibling;
+    flag = input.style.display
+    hideUploadDownload();
+    if (flag == "none") {
         input.style.display = "inline-block";
-    } else {
-        input.style.display = "none";
+        downloadBtn.style.display = "inline-block";
     }
-
-    input = input.nextElementSibling;
-    if (input.style.display == "none") {
-        input.style.display = "inline-block";
-    } else {
-        input.style.display = "none";
-    }
-}
-
-function save(btn) {
-    /*
-        TODO: get the value to be saved & Change "test content"
-    */
-    input = btn.previousElementSibling;
-    download("test content", input.value, "txt")
-    input.style.display = "none";
-    btn.style.display = "none";
-    input.value = "";
 }
 
 /*

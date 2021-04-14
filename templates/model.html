@@ -43,24 +43,23 @@
                 Test</button>
             <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" onclick="reset()">
                 Reset</button>
-            <!--      onclick="window.location.href='/index';"-->
             <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
                     onClick="makeLoadVisible(this)">Load Model</button>
-            <input class="form-control" type="file" onchange="load()"/>
-            <button type="button" class="btn btn-primary btn-lg btn-block, loadBtn" onClick="load(this)">Upload</button>
+            <input class="form-control" type="file"/>
+            <button type="button" class="btn btn-primary btn-lg btn-block, loadBtn" onClick="loadModel(this)">Upload</button>
             <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
                     onClick="makeSaveComponentsVisible(this);">Save Model</button>
             <input type="text" class="form-control, saveName" placeholder="filename" aria-label="filename"
                    aria-describedby="basic-addon1">
             <button type="button" class="btn btn-primary btn-lg btn-block, saveNameBtn"
-                    onClick="save(this)">Download</button>
+                    onClick="saveModel(this)">Download</button>
 
             <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
                     onClick="makeSaveComponentsVisible(this);">Save Results</button>
             <input type="text" class="form-control, saveName" placeholder="filename" aria-label="filename"
                    aria-describedby="basic-addon1">
             <button type="button" class="btn btn-primary btn-lg btn-block, saveNameBtn"
-                    onClick="save(this)">Download</button>
+                    onClick="saveResults(this)">Download</button>
         </div>
 
         <div class="modelLeft">
@@ -76,35 +75,6 @@
             </div>
             <br>
             {% endfor %}
-<!--            <div class="hyperparameters">-->
-<!--                <label for="customRange1" class="form-label">Number of Episodes</label>-->
-<!--                <div class="hyperparameter">-->
-<!--                    <input type="range" class="form-range" id="customRange1" min=0 max=100 value=1-->
-<!--                           onchange="updateSlider(this)">-->
-<!--                    <input class="form-control, customInput" type="number" id="customInput1" value=1-->
-<!--                           onchange="updateInput(this)">-->
-<!--                </div>-->
-<!--            </div>-->
-<!--            <br>-->
-<!--            <div class="hyperparameters">-->
-<!--                <label for="customRange2" class="form-label">rangelong 2</label>-->
-<!--                <div class="hyperparameter">-->
-<!--                    <input type="range" class="form-range" id="customRange2" min=0 max=100 value=1-->
-<!--                           onchange="updateSlider(this)">-->
-<!--                    <input class="form-control, customInput" type="number" id="customInput2" value=1-->
-<!--                           onchange="updateInput(this)">-->
-<!--                </div>-->
-<!--            </div>-->
-<!--            <br>-->
-<!--            <div class="hyperparameters">-->
-<!--                <label for="customRange3" class="form-label">rangelonglong 3</label>-->
-<!--                <div class="hyperparameter">-->
-<!--                    <input type="range" class="form-range" id="customRange3" min=0 max=100 value=1-->
-<!--                           onchange="updateSlider(this)">-->
-<!--                    <input class="form-control, customInput" type="number" id="customInput3" value=1-->
-<!--                           onchange="updateInput(this)">-->
-<!--                </div>-->
-<!--            </div>-->
 
         </div>
         <div class="modelRight">
@@ -113,9 +83,6 @@
             <img class="modelImg" src="{{ url_for('static',filename='img/tempEnv.png') }}"/>
         </div>
 
-<!--        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"-->
-<!--                integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"-->
-<!--                crossorigin="anonymous"></script>-->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
                 integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
                 crossorigin="anonymous"></script>
@@ -128,109 +95,13 @@
             var dpsReward = []
             var dpsEpsilon = []
             var chart;
-            var xVal = 0;
+            var xVal = 1;
             var isRunning = false
             var chart = null;
             var isReset = false
             window.onload = function () {
                 chart = createChart()
-
-<!--                //chart-->
-
-
-<!--                chart = new CanvasJS.Chart("chartContainer", {-->
-<!--                    title :{-->
-<!--                        text: "Dynamic Data"-->
-<!--                    },-->
-<!--                    legend: {-->
-<!--                        cursor: "pointer",-->
-<!--                        itemclick: toggleDataSeries-->
-<!--                    },-->
-<!--                    toolTip: {-->
-<!--                        shared: true-->
-<!--                    },-->
-<!--                    axisY:[{-->
-<!--                        title: "MSE Episode Loss",-->
-<!--                        lineColor: "red",-->
-<!--                        tickColor: "red",-->
-<!--                        labelFontColor: "red",-->
-<!--                        titleFontColor: "red",-->
-<!--                        includeZero: true,-->
-<!--                    },-->
-<!--                    {-->
-<!--                        title: "Reward",-->
-<!--                        lineColor: "green",-->
-<!--                        tickColor: "green",-->
-<!--                        labelFontColor: "green",-->
-<!--                        titleFontColor: "green",-->
-<!--                        includeZero: true,-->
-<!--                    },-->
-<!--                    {-->
-<!--                        title: "Epsilon",-->
-<!--                        lineColor: "blue",-->
-<!--                        tickColor: "blue",-->
-<!--                        labelFontColor: "blue",-->
-<!--                        titleFontColor: "blue",-->
-<!--                        includeZero: true,-->
-<!--                    }],-->
-<!--                    data: [{-->
-<!--                        type: "line",-->
-<!--                        name: "MSE Episode Loss",-->
-<!--                        dataPoints: dpsLoss,-->
-<!--                        showInLegend: true,-->
-<!--                        axisYIndex: 1,-->
-<!--                        color: "red",-->
-<!--                    }, {-->
-<!--                        type: "line",-->
-<!--                        name: "Reward",-->
-<!--                        dataPoints: dpsReward,-->
-<!--                        showInLegend: true,-->
-<!--                        axisYIndex: 0,-->
-<!--                        color: "green",-->
-<!--                    }, {-->
-<!--                        type: "line",-->
-<!--                        name: "Epsilon",-->
-<!--                        dataPoints: dpsEpsilon,-->
-<!--                        showInLegend: true,-->
-<!--                        axisYIndex: 2,-->
-<!--                        color: "blue",-->
-<!--                    }],-->
-<!--                    exportEnabled: true,-->
-<!--                    width: 600,-->
-<!--                    height:250,-->
-<!--                });-->
-
-<!--&lt;!&ndash;                var xVal = 0;&ndash;&gt;-->
-<!--&lt;!&ndash;                var yVal = 100;&ndash;&gt;-->
-<!--                var updateInterval = 100;-->
-<!--                var dataLength = 20; // number of dataPoints visible at any point-->
-
-<!--&lt;!&ndash;                var updateChart = function (count) {&ndash;&gt;-->
-
-<!--&lt;!&ndash;                    count = count || 1;&ndash;&gt;-->
-
-<!--&lt;!&ndash;                    for (var j = 0; j < count; j++) {&ndash;&gt;-->
-<!--&lt;!&ndash;                        yVal = yVal +  Math.round(5 + Math.random() *(-5-5));&ndash;&gt;-->
-<!--&lt;!&ndash;                        dps.push({&ndash;&gt;-->
-<!--&lt;!&ndash;                            x: xVal,&ndash;&gt;-->
-<!--&lt;!&ndash;                            y: yVal&ndash;&gt;-->
-<!--&lt;!&ndash;                        });&ndash;&gt;-->
-<!--&lt;!&ndash;                        xVal++;&ndash;&gt;-->
-<!--&lt;!&ndash;                  }&ndash;&gt;-->
-
-<!--&lt;!&ndash;            //        if (dps.length > dataLength) {&ndash;&gt;-->
-<!--&lt;!&ndash;            //          dps.shift();&ndash;&gt;-->
-<!--&lt;!&ndash;            //        }&ndash;&gt;-->
-
-
-<!--&lt;!&ndash;            };&ndash;&gt;-->
-<!--            chart.render();-->
-<!--&lt;!&ndash;            updateChart(dataLength);&ndash;&gt;-->
-<!--&lt;!&ndash;            setInterval(function(){updateChart()}, updateInterval);&ndash;&gt;-->
-
-
-<!--            //TODO: use the parameters <agent> and <environment>-->
-
+                chart.render()
             }
 
             function createChart() {
@@ -295,7 +166,6 @@
                     width: 600,
                     height:250,
                 });
-                chart.render()
                 return chart
             }
 
@@ -311,14 +181,13 @@
             function reset() {
                 $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
                 isRunning = false;
-                $.getJSON($SCRIPT_ROOT + '/reset')
                 isReset = true;
+                $.getJSON($SCRIPT_ROOT + '/reset')
             }
 
             function halt() {
                 $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
                 isRunning = false;
-<!--                console.log("halt")-->
                 $.getJSON($SCRIPT_ROOT + '/halt')
             }
 
@@ -326,59 +195,127 @@
                 dpsLoss = []
                 dpsReward = []
                 dpsEpsilon = []
-                xVal = 0
+                xVal = 1;
                 chart = createChart()
+                chart.render()
             }
 
             function train() {
-                var lists = document.querySelectorAll("input[type=range]");
-                var params = {}
-                for (var i = 0; i < lists.length; i++) {
-                    params[i] = lists[i].value;
-                }
-<!--                console.log(params)-->
-                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-                $.getJSON($SCRIPT_ROOT + '/startTrain', params, function(data) {
+                if (!isRunning) {
                     isRunning = true;
-                    var episodes = data.episodes;
-<!--                    console.log(episodes)-->
-                    for (i = 0; i < episodes  && isRunning; i++) {
-                        console.log(isRunning)
-                        $.getJSON($SCRIPT_ROOT + '/runTrain', {
-                        }, function(data) {
-                            console.log(data.loss)
-                            dpsLoss.push({
-                                x: xVal,
-                                y: data.loss
-                            });
-                            dpsReward.push({
-                                x: xVal,
-                                y: data.reward
-                            });
-                            dpsEpsilon.push({
-                                x: xVal,
-                                y: data.epsilon
-                            });
+                    chartReset()
+                    var lists = document.querySelectorAll("input[type=range]");
+                    var params = {}
+                    for (var i = 0; i < lists.length; i++) {
+                        params[i] = lists[i].value;
+                    }
+                    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+                    $.getJSON($SCRIPT_ROOT + '/startTrain', params, function(data) {
+
+                        var episodes = data.episodes;
+                        trainRecursion()
+
+                        isRunning = false;
+                    });
+                }
+            }
+
+            function trainRecursion() {
+                $.getJSON($SCRIPT_ROOT + '/runTrain', function(data) {
+                    if (!data.finished) {
+                        if (!isReset) {
+                            chartLossAdd(xVal, data.loss)
+                            chartRewardAdd(xVal, data.reward)
+                            chartEpsilonAdd(xVal, data.epsilon)
                             xVal++;
                             chart.render();
-                        });
+                            trainRecursion()
+                        } else {
+                            isReset = false
+                            chartReset()
+                        }
                     }
-                    if (isReset) {
-                        chartReset()
-                        isReset = false
-                    }
-
-                    isRunning = false;
                 });
-<!--                $.ajax({-->
-<!--                      type: "GET",-->
-<!--                      url: $SCRIPT_ROOT + '/startTrain',-->
-<!--                      data: {params,-->
-<!--                      success: function (result) {-->
-<!--                           // do something here-->
-<!--                      }-->
-<!--                 });-->
             }
+
+            function chartLossAdd(index, loss) {
+                dpsLoss.push({
+                    x: index,
+                    y: loss
+                });
+            }
+
+            function chartRewardAdd(index, reward) {
+                dpsReward.push({
+                    x: index,
+                    y: reward
+                });
+            }
+
+            function chartEpsilonAdd(index, epsilon) {
+                dpsEpsilon.push({
+                    x: index,
+                    y: epsilon
+                });
+            }
+
+            function saveResults(btn) {
+                input = btn.previousElementSibling;
+                var results = "";
+                for(var i = 0; i < dpsLoss.length; i++) {
+                    results += (i+1) + ", " + dpsLoss[i].y + ", " + dpsReward[i].y + ", " + dpsEpsilon[i].y + "\n";
+                }
+                download(results, input.value, "txt")
+                input.style.display = "none";
+                btn.style.display = "none";
+                input.value = "";
+            }
+
+            function saveModel(btn) {
+                input = btn.previousElementSibling;
+                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+                $.getJSON($SCRIPT_ROOT + '/saveModel', function(data) {
+                    download(data.agent, input.value, "txt")
+                    input.style.display = "none";
+                    btn.style.display = "none";
+                    input.value = "";
+                });
+            }
+
+<!--            function loadModel(btn) {-->
+<!--                input = btn.previousElementSibling;-->
+<!--                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};-->
+<!--                $.getJSON($SCRIPT_ROOT + '/saveModel', {-->
+<!--                    agent:-->
+<!--                }, function(data) {-->
+<!--                    download(data.agent, input.value, "txt")-->
+<!--                    input.style.display = "none";-->
+<!--                    btn.style.display = "none";-->
+<!--                    input.value = "";-->
+<!--                });-->
+<!--            }-->
+
+            function loadModel(btn) {
+                input = btn.previousElementSibling
+                input.style.display = "none";
+                btn.style.display = "none";
+                window.alert("Model Uploaded");
+                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+                var fr = new FileReader();
+                var temp;
+                fr.onload=function(){
+                    temp = fr.result;
+                    $.getJSON($SCRIPT_ROOT + '/loadModel', {
+                        agent: temp
+                    }, function(data) {
+                        input.style.display = "none";
+                        btn.style.display = "none";
+                        input.value = "";
+                    });
+                }
+                fr.readAsText(input.files[0]);
+            }
+
         </script>
     </body>
 

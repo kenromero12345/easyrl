@@ -1,7 +1,6 @@
 function makeLoadVisible(button) {
     input = button.nextElementSibling;
     uploadBtn = input.nextElementSibling;
-//    console.log(input.style.display)
     flag = input.style.display
     hideUploadDownload();
     if (flag == "none") {

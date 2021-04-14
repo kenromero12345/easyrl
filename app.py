@@ -1,3 +1,5 @@
+from types import ModuleType
+
 from flask import Flask, render_template, g, request, jsonify
 import time
 from Agents import qLearning, drqn, deepQ, adrqn, agent as ag, doubleDuelingQNative, drqnNative, drqnConvNative, ppoNative, \
@@ -9,6 +11,9 @@ from MVC import model
 import threading
 import queue
 from MVC.model import Model
+import sys
+import jsonpickle
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -20,8 +25,28 @@ def indexPage():
 @app.route('/custEnv')
 def custEnv():
     file = request.args.get('file')
-    print(file)
-    return jsonify(result=1000)
+    module = ModuleType('customEnv')
+    sys.modules['customEnv'] = module
+    exec(file, module.__dict__)
+
+    global environments
+    environments = [module.CustomEnv] + environments
+    global envName
+    envName = [module.CustomEnv.displayName] + envName
+    return jsonify(finished=True)
+
+@app.route('/custAg')
+def custAg():
+    file = request.args.get('file')
+    module = ModuleType('customAg')
+    sys.modules['customAg'] = module
+    exec(file, module.__dict__)
+
+    global agents
+    agents = [module.CustomAgent] + environments
+    global agtName
+    agtName = [module.CustomAgent.displayName] + agtName
+    return jsonify(finished=True)
 
 @app.route('/model/<environment>/<agent>')
 def modelPage(environment, agent):
@@ -41,6 +66,16 @@ def modelPage(environment, agent):
     for param in mod.agent_class.parameters:
         params.append(param)
     return render_template('model.html', params=params) # environment=environment, agent=agent
+
+@app.route('/saveModel')
+def saveModel():
+    temp = jsonpickle.encode(mod.agent)
+    return jsonify(agent=temp)
+
+@app.route('/loadModel')
+def loadModel():
+    mod.loadedAgent = jsonpickle.decode(request.args.get('agent'))
+    return jsonify(finished=True)
 
 @app.route('/startTrain')
 def startTrain():
@@ -63,6 +98,9 @@ def startTrain():
 @app.route('/runTrain')
 def runTrain():
     temp = msg.get(block=True)
+    if temp.data == Model.Message.TRAIN_FINISHED:
+        return jsonify(finished=True)
+
     episodeAccLoss= 0
     episodeAccEpsilon = 0
     episodeAccReward = 0
@@ -74,28 +112,30 @@ def runTrain():
                 episodeAccEpsilon += temp.data.epsilon
             if temp.data.reward:
                 episodeAccReward += temp.data.reward
+
         temp = msg.get(block=True)
-
-
 
     # print(inputParams[1])
     return jsonify(loss=episodeAccLoss/inputParams[1], reward=episodeAccReward,
-                   epsilon=episodeAccEpsilon/inputParams[1]) #inputParams[1] is max size the hyperparameter
+                   epsilon=episodeAccEpsilon/inputParams[1], finished=False) #inputParams[1] is max size the hyperparameter
 
 @app.route('/halt')
 def halt():
     print("halting")
     if mod.isRunning:
-    #     print("halted")
         mod.halt_learning()
+    return jsonify(finished=True)
 
 @app.route('/reset')
 def reset():
     print("reset")
     if mod.isRunning:
-    #     print("halted")
         mod.halt_learning()
-    mod.reset()
+    # with msg.mutex:
+    #     msg.queue.clear()
+    global msg
+    msg = queue.Queue()
+    return jsonify(finished=True)
 
 @app.route('/about')
 def aboutPage():
@@ -170,6 +210,5 @@ if __name__ == "__main__":
     msg = queue.Queue()
     mod = model.Model()
     params = None
-    global inputParams
     inputParams = []
     app.run()
