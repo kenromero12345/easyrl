@@ -80,6 +80,12 @@
         <div class="modelRight">
             <div id="chartContainer"></div>
             <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+            <div>
+                    <label id="totalTrainingRewardLbl">Total Training Reward: </label>
+                    <label id="totalTrainingReward">0</label>
+                    <label id="rewardPerEpisodeLbl">Reward/Episode: </label>
+                    <label id="rewardPerEpisode">0</label>
+            </div>
             <img class="modelImg" src="{{ url_for('static',filename='img/tempEnv.png') }}"/>
         </div>
 
@@ -117,19 +123,19 @@
                         shared: true
                     },
                     axisY:[{
-                        title: "MSE Episode Loss",
-                        lineColor: "red",
-                        tickColor: "red",
-                        labelFontColor: "red",
-                        titleFontColor: "red",
-                        includeZero: true,
-                    },
-                    {
                         title: "Reward",
                         lineColor: "green",
                         tickColor: "green",
                         labelFontColor: "green",
                         titleFontColor: "green",
+                        includeZero: true,
+                    },
+                    {
+                        title: "MSE Episode Loss",
+                        lineColor: "red",
+                        tickColor: "red",
+                        labelFontColor: "red",
+                        titleFontColor: "red",
                         includeZero: true,
                     },
                     {
@@ -198,6 +204,7 @@
                 xVal = 1;
                 chart = createChart()
                 chart.render()
+                totalTrainingRewardVal = 0
             }
 
             function train() {
@@ -220,6 +227,12 @@
                 }
             }
 
+            var totalTrainingReward = document.querySelector("#totalTrainingReward")
+            var rewardPerEpisode = document.querySelector("#rewardPerEpisode")
+            var totalTrainingRewardVal = 0
+            console.log(totalTrainingRewardVal)
+            console.log(totalTrainingReward.innerHTML)
+            console.log(rewardPerEpisode.innerHTML)
             function trainRecursion() {
                 $.getJSON($SCRIPT_ROOT + '/runTrain', function(data) {
                     if (!data.finished) {
@@ -230,6 +243,10 @@
                             xVal++;
                             chart.render();
                             trainRecursion()
+                            totalTrainingRewardVal += data.reward
+                            totalTrainingReward.innerHTML = totalTrainingRewardVal
+                            rewardPerEpisode.innerHTML = (totalTrainingRewardVal/xVal).toFixed(4)
+
                         } else {
                             isReset = false
                             chartReset()
@@ -282,24 +299,10 @@
                 });
             }
 
-<!--            function loadModel(btn) {-->
-<!--                input = btn.previousElementSibling;-->
-<!--                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};-->
-<!--                $.getJSON($SCRIPT_ROOT + '/saveModel', {-->
-<!--                    agent:-->
-<!--                }, function(data) {-->
-<!--                    download(data.agent, input.value, "txt")-->
-<!--                    input.style.display = "none";-->
-<!--                    btn.style.display = "none";-->
-<!--                    input.value = "";-->
-<!--                });-->
-<!--            }-->
-
             function loadModel(btn) {
                 input = btn.previousElementSibling
                 input.style.display = "none";
                 btn.style.display = "none";
-                window.alert("Model Uploaded");
                 $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
                 var fr = new FileReader();
                 var temp;
@@ -308,6 +311,11 @@
                     $.getJSON($SCRIPT_ROOT + '/loadModel', {
                         agent: temp
                     }, function(data) {
+                        if (data.success) {
+                            window.alert("Model Uploaded");
+                        } else {
+                            window.alert("Incorrect Model! Loading Unsuccessful");
+                        }
                         input.style.display = "none";
                         btn.style.display = "none";
                         input.value = "";
@@ -318,5 +326,4 @@
 
         </script>
     </body>
-
 </html>

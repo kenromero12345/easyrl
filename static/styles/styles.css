@@ -127,9 +127,17 @@ h1 {
 
 /*page2*/
 
+#totalTrainingRewardLbl {
+    margin-left: 20px;
+}
+
+#rewardPerEpisodeLbl {
+    margin-left: 20px;
+}
+
 .modelImg {
     width:100%;
-    height:310px;
+    height:280px;
 }
 
 .hyperparameter input[type=range] {

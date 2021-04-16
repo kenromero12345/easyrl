@@ -1,5 +1,4 @@
 from types import ModuleType
-
 from flask import Flask, render_template, g, request, jsonify
 import time
 from Agents import qLearning, drqn, deepQ, adrqn, agent as ag, doubleDuelingQNative, drqnNative, drqnConvNative, ppoNative, \
@@ -74,8 +73,14 @@ def saveModel():
 
 @app.route('/loadModel')
 def loadModel():
-    mod.loadedAgent = jsonpickle.decode(request.args.get('agent'))
-    return jsonify(finished=True)
+    temp = jsonpickle.decode(request.args.get('agent'))
+    print(type(temp))
+    print(mod.agent_class)
+    if mod.agent_class == type(temp):
+        print(True)
+        mod.agent = temp
+        return jsonify(success=True)
+    return jsonify(success=False)
 
 @app.route('/startTrain')
 def startTrain():
@@ -131,8 +136,6 @@ def reset():
     print("reset")
     if mod.isRunning:
         mod.halt_learning()
-    # with msg.mutex:
-    #     msg.queue.clear()
     global msg
     msg = queue.Queue()
     return jsonify(finished=True)

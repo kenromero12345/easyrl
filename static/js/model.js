@@ -17,13 +17,6 @@ function updateInput(input) {
     }
 }
 
-function load(btn) {
-    /*TODO: what do you do to the uploaded file*/
-    input = btn.previousElementSibling;
-    input.style.display = "none";
-    btn.style.display = "none";
-}
-
 function makeSaveComponentsVisible(button) {
     input = button.nextElementSibling;
     downloadBtn = input.nextElementSibling;

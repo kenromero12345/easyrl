@@ -36,47 +36,6 @@
             </div>
         </nav>
 
-        <script>
-            function loadCustEnv(btn) {
-                input = btn.previousElementSibling
-                input.style.display = "none";
-                btn.style.display = "none";
-                window.alert("Custom Environment Uploaded");
-                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-                var fr = new FileReader();
-                var temp;
-                fr.onload=function(){
-                    temp = fr.result;
-                    $.getJSON($SCRIPT_ROOT + '/custEnv', {
-                        file: temp
-                    }, function(data) {
-                        window.location.reload()
-                    });
-                }
-                fr.readAsText(input.files[0]);
-            }
-
-            function loadCustAg(btn) {
-                input = btn.previousElementSibling
-                console.log(input.files[0])
-                input.style.display = "none";
-                btn.style.display = "none";
-                window.alert("Custom Agent Uploaded");
-                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-                var fr = new FileReader();
-                var temp;
-                fr.onload=function(){
-                    temp = fr.result;
-                    $.getJSON($SCRIPT_ROOT + '/custAg', {
-                        file: temp
-                    }, function(data) {
-                        window.location.reload()
-                    });
-                }
-                fr.readAsText(input.files[0]);
-            }
-        </script>
-
         <div class="topBtn">
             <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
                     onClick="makeLoadVisible(this)">Load Custom Environment</button>
@@ -123,15 +82,53 @@
             </button>
         </div>
 
-<!--        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"-->
-<!--                integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"-->
-<!--                crossorigin="anonymous"></script>-->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
                 integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
                 crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
                 integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
                 crossorigin="anonymous"></script>
+
+        <script>
+            function loadCustEnv(btn) {
+                input = btn.previousElementSibling
+                input.style.display = "none";
+                btn.style.display = "none";
+                window.alert("Custom Environment Uploaded");
+                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+                var fr = new FileReader();
+                var temp;
+                fr.onload=function(){
+                    temp = fr.result;
+                    $.getJSON($SCRIPT_ROOT + '/custEnv', {
+                        file: temp
+                    }, function(data) {
+                        window.location.reload()
+                    });
+                }
+                fr.readAsText(input.files[0]);
+            }
+
+            function loadCustAg(btn) {
+                input = btn.previousElementSibling
+                console.log(input.files[0])
+                input.style.display = "none";
+                btn.style.display = "none";
+                window.alert("Custom Agent Uploaded");
+                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+                var fr = new FileReader();
+                var temp;
+                fr.onload=function(){
+                    temp = fr.result;
+                    $.getJSON($SCRIPT_ROOT + '/custAg', {
+                        file: temp
+                    }, function(data) {
+                        window.location.reload()
+                    });
+                }
+                fr.readAsText(input.files[0]);
+            }
+        </script>
     </body>
 
 </html>
