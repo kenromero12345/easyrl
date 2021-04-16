@@ -98,16 +98,20 @@
 
         <script>
             var dpsLoss = []; // dataPoints
-            var dpsReward = []
-            var dpsEpsilon = []
+            var dpsReward = [];
+            var dpsEpsilon = [];
             var chart;
             var xVal = 1;
-            var isRunning = false
+            var isRunning = false;
             var chart = null;
-            var isReset = false
+            var isReset = false;
+            var totalTrainingReward = document.querySelector("#totalTrainingReward");
+            var rewardPerEpisode = document.querySelector("#rewardPerEpisode");
+            var totalTrainingRewardVal = 0;
+
             window.onload = function () {
-                chart = createChart()
-                chart.render()
+                chart = createChart();
+                chart.render();
             }
 
             function createChart() {
@@ -172,7 +176,7 @@
                     width: 600,
                     height:250,
                 });
-                return chart
+                return chart;
             }
 
             function toggleDataSeries(e) {
@@ -186,9 +190,17 @@
 
             function reset() {
                 $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-                isRunning = false;
-                isReset = true;
-                $.getJSON($SCRIPT_ROOT + '/reset')
+                console.log("resetting")
+                console.log(isRunning)
+                if (isRunning) {
+                    console.log("about to reset")
+                    isRunning = false;
+                    isReset = true;
+                } else {
+                    console.log("reset")
+                    chartReset();
+                }
+                $.getJSON($SCRIPT_ROOT + '/reset');
             }
 
             function halt() {
@@ -205,6 +217,8 @@
                 chart = createChart()
                 chart.render()
                 totalTrainingRewardVal = 0
+                totalTrainingReward.innerHTML = 0
+                rewardPerEpisode.innerHTML = 0
             }
 
             function train() {
@@ -218,25 +232,21 @@
                     }
                     $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
                     $.getJSON($SCRIPT_ROOT + '/startTrain', params, function(data) {
-
-                        var episodes = data.episodes;
                         trainRecursion()
-
-                        isRunning = false;
                     });
                 }
             }
 
-            var totalTrainingReward = document.querySelector("#totalTrainingReward")
-            var rewardPerEpisode = document.querySelector("#rewardPerEpisode")
-            var totalTrainingRewardVal = 0
-            console.log(totalTrainingRewardVal)
-            console.log(totalTrainingReward.innerHTML)
-            console.log(rewardPerEpisode.innerHTML)
             function trainRecursion() {
                 $.getJSON($SCRIPT_ROOT + '/runTrain', function(data) {
-                    if (!data.finished) {
-                        if (!isReset) {
+                    if (data.finished) {
+                        isRunning = false
+                    } else {
+                        if (isReset) {
+                            isRunning = false
+                            isReset = false
+                            chartReset()
+                        } else {
                             chartLossAdd(xVal, data.loss)
                             chartRewardAdd(xVal, data.reward)
                             chartEpsilonAdd(xVal, data.epsilon)
@@ -246,10 +256,6 @@
                             totalTrainingRewardVal += data.reward
                             totalTrainingReward.innerHTML = totalTrainingRewardVal
                             rewardPerEpisode.innerHTML = (totalTrainingRewardVal/xVal).toFixed(4)
-
-                        } else {
-                            isReset = false
-                            chartReset()
                         }
                     }
                 });
