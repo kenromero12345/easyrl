@@ -85,7 +85,7 @@ def loadModel():
 @app.route('/startTrain')
 def startTrain():
     if mod.isRunning:
-        return jsonify(episodes=0)
+        return jsonify(finished=False)
     else:
         global inputParams
         inputParams = []
@@ -98,7 +98,7 @@ def startTrain():
             temp = request.args.get(str(i))
 
         threading.Thread(target=mod.run_learning, args=[msg, ] + inputParams).start()
-        return jsonify(episodes=inputParams[0])
+        return jsonify(finished=True)
 
 @app.route('/runTrain')
 def runTrain():
@@ -120,9 +120,45 @@ def runTrain():
 
         temp = msg.get(block=True)
 
-    # print(inputParams[1])
     return jsonify(loss=episodeAccLoss/inputParams[1], reward=episodeAccReward,
                    epsilon=episodeAccEpsilon/inputParams[1], finished=False) #inputParams[1] is max size the hyperparameter
+
+@app.route('/startTest')
+def startTest():
+    if mod.isRunning:
+        return jsonify(finished=False)
+    else:
+        if mod.agent:
+            global inputParams
+            inputParams = []
+
+            temp = request.args.get('0')
+            i = 0
+            while temp is not None:
+                inputParams.append(float(temp))
+                i += 1
+                temp = request.args.get(str(i))
+
+            threading.Thread(target=mod.run_testing, args=[msg, ] + inputParams).start()
+            return jsonify(finished=True, model=True)
+        else:
+            return jsonify(finished=False, model=False)
+
+@app.route('/runTest')
+def runTest():
+    temp = msg.get(block=True)
+    if temp.data == Model.Message.TEST_FINISHED:
+        return jsonify(finished=True)
+
+    episodeAccReward = 0
+    while temp.data != Model.Message.EPISODE:
+        if temp.type == Model.Message.STATE:
+            if temp.data.reward:
+                episodeAccReward += temp.data.reward
+
+        temp = msg.get(block=True)
+
+    return jsonify(reward=episodeAccReward, finished=False)
 
 @app.route('/halt')
 def halt():

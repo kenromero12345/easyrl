@@ -221,6 +221,26 @@
                 rewardPerEpisode.innerHTML = 0
             }
 
+            function test() {
+                if (!isRunning) {
+                    var lists = document.querySelectorAll("input[type=range]");
+                    var params = {}
+                    for (var i = 0; i < lists.length; i++) {
+                        params[i] = lists[i].value;
+                    }
+                    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+                    $.getJSON($SCRIPT_ROOT + '/startTest', params, function(data) {
+                    if (data.model) {
+                            isRunning = true;
+                            chartReset()
+                            testRecursion()
+                        } else {
+                            window.alert("Model has not been trained!");
+                        }
+                    });
+                }
+            }
+
             function train() {
                 if (!isRunning) {
                     isRunning = true;
@@ -235,6 +255,28 @@
                         trainRecursion()
                     });
                 }
+            }
+
+            function testRecursion() {
+                $.getJSON($SCRIPT_ROOT + '/runTest', function(data) {
+                    if (data.finished) {
+                        isRunning = false
+                    } else {
+                        if (isReset) {
+                            isRunning = false
+                            isReset = false
+                            chartReset()
+                        } else {
+                            chartRewardAdd(xVal, data.reward)
+                            xVal++;
+                            chart.render();
+                            testRecursion()
+                            totalTrainingRewardVal += data.reward
+                            totalTrainingReward.innerHTML = totalTrainingRewardVal
+                            rewardPerEpisode.innerHTML = (totalTrainingRewardVal/xVal).toFixed(4)
+                        }
+                    }
+                });
             }
 
             function trainRecursion() {
