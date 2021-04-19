@@ -1,8 +1,7 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
-              integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
         <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/styles.css') }}">
         <script type=text/javascript src="{{  url_for('static', filename='js/model.js') }}"></script>
         <script type=text/javascript src="{{  url_for('static', filename='js/combined.js') }}"></script>
@@ -35,13 +34,13 @@
         </nav>
 
         <div class="topBtn">
-            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" onclick="train()">
+            <button type="button" class="btn btn-success btn-lg btn-block, modelButtons" onclick="train()">
                 Train</button>
-            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" onclick="halt()">
+            <button type="button" class="btn btn-warning btn-lg btn-block, modelButtons" onclick="halt()">
                 Halt</button>
-            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" onclick="test()">
+            <button type="button" class="btn btn-success btn-lg btn-block, modelButtons" onclick="test()">
                 Test</button>
-            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons" onclick="reset()">
+            <button type="button" class="btn btn-danger btn-lg btn-block, modelButtons" onclick="reset()">
                 Reset</button>
             <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
                     onClick="makeLoadVisible(this)">Load Model</button>
@@ -75,8 +74,8 @@
             </div>
             <br>
             {% endfor %}
-
         </div>
+
         <div class="modelRight">
             <div id="chartContainer"></div>
             <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
@@ -85,16 +84,13 @@
                     <label id="totalTrainingReward">0</label>
                     <label id="rewardPerEpisodeLbl">Reward/Episode: </label>
                     <label id="rewardPerEpisode">0</label>
+                    <div class="custom-control custom-switch">
+                      <input type="checkbox" class="custom-control-input" id="envSwitch" onchange="displayUpdate(this)">
+                      <label class="custom-control-label" for="envSwitch">Display</label>
+                    </div>
             </div>
             <img class="modelImg" src="{{ url_for('static',filename='img/tempEnv.png') }}"/>
         </div>
-
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-                integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-                crossorigin="anonymous"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-                integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-                crossorigin="anonymous"></script>
 
         <script>
             var dpsLoss = []; // dataPoints
@@ -108,10 +104,31 @@
             var totalTrainingReward = document.querySelector("#totalTrainingReward");
             var rewardPerEpisode = document.querySelector("#rewardPerEpisode");
             var totalTrainingRewardVal = 0;
+            var htmlImg = document.querySelector(".modelImg");
+            var isDisplaying = false;
+            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
             window.onload = function () {
                 chart = createChart();
                 chart.render();
+            }
+
+            function displayRecursion() {
+                if (isDisplaying) {
+                    $.get($SCRIPT_ROOT + '/tempImage', function() {
+                        htmlImg.src = "{{ url_for('tempImage')}}";
+                        displayRecursion()
+                    })
+                }
+            }
+
+            function displayUpdate(cb) {
+                if(cb.checked) {
+                    isDisplaying = true;
+                    displayRecursion();
+                } else {
+                    isDisplaying = false;
+                }
             }
 
             function createChart() {
@@ -189,9 +206,6 @@
             }
 
             function reset() {
-                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-                console.log("resetting")
-                console.log(isRunning)
                 if (isRunning) {
                     console.log("about to reset")
                     isRunning = false;
@@ -204,7 +218,6 @@
             }
 
             function halt() {
-                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
                 isRunning = false;
                 $.getJSON($SCRIPT_ROOT + '/halt')
             }
@@ -228,12 +241,11 @@
                     for (var i = 0; i < lists.length; i++) {
                         params[i] = lists[i].value;
                     }
-                    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
                     $.getJSON($SCRIPT_ROOT + '/startTest', params, function(data) {
-                    if (data.model) {
-                            isRunning = true;
-                            chartReset()
-                            testRecursion()
+                        if (data.model) {
+                                isRunning = true;
+                                chartReset()
+                                testRecursion()
                         } else {
                             window.alert("Model has not been trained!");
                         }
@@ -250,7 +262,6 @@
                     for (var i = 0; i < lists.length; i++) {
                         params[i] = lists[i].value;
                     }
-                    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
                     $.getJSON($SCRIPT_ROOT + '/startTrain', params, function(data) {
                         trainRecursion()
                     });
@@ -292,6 +303,7 @@
                             chartLossAdd(xVal, data.loss)
                             chartRewardAdd(xVal, data.reward)
                             chartEpsilonAdd(xVal, data.epsilon)
+<!--                            HtmlImg.src = "data:image/png;base64, " +-->
                             xVal++;
                             chart.render();
                             trainRecursion()
@@ -338,7 +350,6 @@
 
             function saveModel(btn) {
                 input = btn.previousElementSibling;
-                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
                 $.getJSON($SCRIPT_ROOT + '/saveModel', function(data) {
                     download(data.agent, input.value, "txt")
                     input.style.display = "none";
@@ -351,7 +362,6 @@
                 input = btn.previousElementSibling
                 input.style.display = "none";
                 btn.style.display = "none";
-                $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
                 var fr = new FileReader();
                 var temp;
                 fr.onload=function(){
@@ -371,7 +381,13 @@
                 }
                 fr.readAsText(input.files[0]);
             }
-
         </script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"
+                integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut"
+                crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"
+                integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
+                crossorigin="anonymous"></script>
     </body>
 </html>

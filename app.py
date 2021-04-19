@@ -1,5 +1,8 @@
+import io
 from types import ModuleType
-from flask import Flask, render_template, g, request, jsonify
+import PIL
+from PIL.Image import Image
+from flask import Flask, render_template, g, request, jsonify, send_file
 import time
 from Agents import qLearning, drqn, deepQ, adrqn, agent as ag, doubleDuelingQNative, drqnNative, drqnConvNative, ppoNative, \
     reinforceNative, actorCriticNative, cem, npg, ddpg, sac, trpo, rainbow
@@ -14,6 +17,7 @@ import sys
 import jsonpickle
 
 app = Flask(__name__)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 @app.route('/')
 @app.route('/index')
@@ -64,7 +68,7 @@ def modelPage(environment, agent):
                                     "The max number of timesteps permitted in an episode")]
     for param in mod.agent_class.parameters:
         params.append(param)
-    return render_template('model.html', params=params) # environment=environment, agent=agent
+    return render_template('model.html', params=params)
 
 @app.route('/saveModel')
 def saveModel():
@@ -87,9 +91,9 @@ def startTrain():
     if mod.isRunning:
         return jsonify(finished=False)
     else:
-        global inputParams
+        global inputParams, tempImages
         inputParams = []
-
+        tempImages = []
         temp = request.args.get('0')
         i = 0
         while temp is not None:
@@ -109,6 +113,7 @@ def runTrain():
     episodeAccLoss= 0
     episodeAccEpsilon = 0
     episodeAccReward = 0
+    global tempImages
     while temp.data != Model.Message.EPISODE:
         if temp.type == Model.Message.STATE:
             if temp.data.loss:
@@ -117,11 +122,23 @@ def runTrain():
                 episodeAccEpsilon += temp.data.epsilon
             if temp.data.reward:
                 episodeAccReward += temp.data.reward
+            if temp.data.image:
+                tempImages.append(temp.data.image)
 
         temp = msg.get(block=True)
 
     return jsonify(loss=episodeAccLoss/inputParams[1], reward=episodeAccReward,
                    epsilon=episodeAccEpsilon/inputParams[1], finished=False) #inputParams[1] is max size the hyperparameter
+
+@app.route('/tempImage')
+def tempImage():
+    global noImg
+    if len(tempImages) == 1:
+        return serve_pil_image(tempImages[0])
+    if tempImages:
+        return serve_pil_image(tempImages.pop(0))
+    else:
+        return serve_pil_image(noImg)
 
 @app.route('/startTest')
 def startTest():
@@ -129,8 +146,9 @@ def startTest():
         return jsonify(finished=False)
     else:
         if mod.agent:
-            global inputParams
+            global inputParams, tempImages
             inputParams = []
+            tempImages = []
 
             temp = request.args.get('0')
             i = 0
@@ -160,6 +178,13 @@ def runTest():
 
     return jsonify(reward=episodeAccReward, finished=False)
 
+# # https://stackoverflow.com/questions/7877282/how-to-send-image-generated-by-pil-to-browser
+def serve_pil_image(pil_img):
+    img_io = io.BytesIO()
+    pil_img.save(img_io, 'JPEG', quality=70)
+    img_io.seek(0)
+    return send_file(img_io, mimetype='image/jpeg')
+
 @app.route('/halt')
 def halt():
     print("halting")
@@ -172,6 +197,8 @@ def reset():
     print("reset")
     if mod.isRunning:
         mod.halt_learning()
+    global tempImages
+    tempImages = []
     global msg
     msg = queue.Queue()
     return jsonify(finished=True)
@@ -250,4 +277,6 @@ if __name__ == "__main__":
     mod = model.Model()
     params = None
     inputParams = []
+    tempImages = []
+    noImg = PIL.Image.open("./static/img/noImg.png")
     app.run()

@@ -1,202 +1,308 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+<!--    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"-->
+<!--          integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">-->
     <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/styles.css') }}">
     <script type=text/javascript src="{{  url_for('static', filename='js/combined.js') }}"></script>
     <title>EasyRL</title>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="/index">EasyRL</a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-mdb-toggle="collapse"
-          data-mdb-target="#navbarNavAltMarkup"
-          aria-controls="navbarNavAltMarkup"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <i class="fas fa-bars"></i>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-          <div class="navbar-nav">
-            <a class="nav-link" href="/index">Model</a>
-            <a class="nav-link" href="/about">About</a>
-            <a class="nav-link active" aria-current="page" href="/#">Help</a>
-          </div>
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/index">EasyRL</a>
+            <button
+              class="navbar-toggler"
+              type="button"
+              data-mdb-toggle="collapse"
+              data-mdb-target="#navbarNavAltMarkup"
+              aria-controls="navbarNavAltMarkup"
+              aria-expanded="false"
+              aria-label="Toggle navigation"
+            >
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <div class="navbar-nav">
+                    <a class="nav-link" href="/index">Model</a>
+                    <a class="nav-link" href="/about">About</a>
+                    <a class="nav-link active" aria-current="page" href="/#">Help</a>
+                </div>
+            </div>
         </div>
-      </div>
     </nav>
 
-<!--    <h1 class="h1Start">Help</h1>-->
-    <div class="helpContainer">
-<!--      <h2>Tutorial</h2>-->
-      <p>
-        Welcome to Portal RL - A user friendly environment for learning and deploying reinforcement learning
-        environments and agents
+        <div class="helpContainer">
+            <h3>
+                Welcome to Portal RL
+            </h3>
+            <h5>A user friendly environment for learning and deploying reinforcement learning
+                environments and agents
+            </h5>
 
-
-        MAIN WORK AREA (Tab X)
-
-          - Getting Started:
-
-            1) Number of episodes -
-               This parameter is used to define how many times the program should run the same
-               simulation. Depending on the complexity of the model, a user might choose to run the simulation
-               thousands of times to learn an optimal policy for the task it is trying to perform.
-               NEW USER TIP:
-               We recommend starting with a low number of episodes and gradually increasing the amount
-               This will give you a sense of how reinforcement learning works and the affect
-               the number of episodes has on various agent/environment interactions.
-
-            2) Max Steps -
-               This number dictates how many actions will be taken during each episode before a training
-               is concluded
-               NEW USER TIP:
-               Arbitrarily large numbers of steps don't always work out to better learning. Some of the
-               suggested starting environments have a limited size. As you become more familiar with the
-               environments you will get a feel for how many steps it should take to find an optimal policy
-               and can adjust accordingly. You will learn that some reinforcement learning programs take a
-               large number of episodes (which can include multiple days of training) and an ideal number of
-               steps will allow an agent to run episodes efficiently.
-
-            3) Select Environment -
-               This drop down menu will allow you to select a reinforcement learning environment
-               from the available python gym sandboxes including a selection of atari games
-               NEW USER TIP:
-               We recommend starting with CartPole, CartPole Discrete, FrozenLake, Pendulum, Acrobat, or
-               MountainCar. As you become more in tune with how these environments work move into the atari
-               games, and if you feel inspired we hope you explore the internet for ways to develop your own
-               environments and interact with our API (Found in our Advanced Options section).
-
-            4) Select Agent -
-               This drop down menu contains several of the most studied reinforcement learning
-               algorithms to match to your environment.
-               NEW USER TIP:
-               Don't worry, we have installed some guard rails to keep you from matching agents and
-               environments that don't work together. As you study how reinforcement learning works you will
-               understand why those combinations don't work together.
-
-            5) Set Model -
-               Once you have selected an environment and an agent this will open the training interface.
-
-           - Training Interface -
-
-             1) Gamma -
+            <h4>
+                MAIN WORK AREA
+            </h4>
+            <h5>
+                Getting Started:
+            </h5>
+            <h6>
+                1) Number of episodes
+            </h6>
+            <p>
+                This parameter is used to define how many times the program should run the same
+                simulation. Depending on the complexity of the model, a user might choose to run the simulation
+                thousands of times to learn an optimal policy for the task it is trying to perform.
+            </p>
+            <p>
+                NEW USER TIP:
+                We recommend starting with a low number of episodes and gradually increasing the amount
+                This will give you a sense of how reinforcement learning works and the affect
+                the number of episodes has on various agent/environment interactions.
+            </p>
+            <h6>
+                2) Max Steps
+            </h6>
+            <p>
+                This number dictates how many actions will be taken during each episode before a training
+                is concluded
+            </p>
+            <p>
+                NEW USER TIP:
+                Arbitrarily large numbers of steps don't always work out to better learning. Some of the
+                suggested starting environments have a limited size. As you become more familiar with the
+                environments you will get a feel for how many steps it should take to find an optimal policy
+                and can adjust accordingly. You will learn that some reinforcement learning programs take a
+                large number of episodes (which can include multiple days of training) and an ideal number of
+                steps will allow an agent to run episodes efficiently.
+            </p>
+            <h6>
+                3) Select Environment
+            </h6>
+            <p>
+                This drop down menu will allow you to select a reinforcement learning environment
+                from the available python gym sandboxes including a selection of atari games
+            </p>
+            <p>
+                NEW USER TIP:
+                We recommend starting with CartPole, CartPole Discrete, FrozenLake, Pendulum, Acrobat, or
+                MountainCar. As you become more in tune with how these environments work move into the atari
+                games, and if you feel inspired we hope you explore the internet for ways to develop your own
+                environments and interact with our API (Found in our Advanced Options section).
+            </p>
+            <h6>
+                4) Select Agent
+            </h6>
+            <p>
+                This drop down menu contains several of the most studied reinforcement learning
+                algorithms to match to your environment.
+            </p>
+            <p>
+                NEW USER TIP:
+                Don't worry, we have installed some guard rails to keep you from matching agents and
+                environments that don't work together. As you study how reinforcement learning works you will
+                understand why those combinations don't work together.
+            </p>
+            <h6>
+                5) Set Model
+            </h6>
+            <p>
+                Once you have selected an environment and an agent this will open the training interface.
+            </p>
+            <br>
+            <h5>
+                Training Interface
+            </h5>
+            <h6>
+                1) Gamma
+            </h6>
+            <p>
                 This value (0 <= X <= 1) represents the discount that the reinforcement learning agents assign to
                 future rewards when calculating the value of a being between one action and the next. How this is
                 done varies from algorithm to algorithm.
+            </p>
+            <p>
                 NEW USER TIP:
                 This value is, in almost all circumstances, very close to one.
-
-             2) Min/Max Epsilon and Decay Rate -
+            </p>
+            <h6>
+                2) Min/Max Epsilon and Decay Rate
+            </h6>
+            <p>
                 This value represents the proportion of time an agent should choose a random action or consult
                 its policy. A value of 1 means that it will always choose a random action and a value of 0 means it
                 will always consult the policy. This is set to the Max value initially and decrements at
                 intervals by the decay rate during training. When testing these should be set to zero.
-
-             3) Batch Size -
+            </p>
+            <h6>
+                3) Batch Size
+            </h6>
+            <p>
                 When training a neural network this is the size of the group of actions and rewards that the
                 network will consider each time while training its decision process. In any neural network this is
                 a value that is fine tuned through testing.
-
-             4) Memory size -
+            </p>
+            <h6>
+                4) Memory size
+            </h6>
+            <p>
                 This is the maximimum number of state, action, and reward tuples that are stored for reference
                 by the agent.
-
-             5) History Length -
+            </p>
+            <h6>
+                5) History Length
+            </h6>
+            <p>
                 Neural networks often rely on information that is gained from its perception of the environment, and
                 in environments that a single image doesn't tell the user much about what is happening in a given
                 state this variable determines the number of chronological frames that a neural network will
                 consider when updating its policy.
-
-             6) Alpha -
+            </p>
+            <h6>
+                6) Alpha
+            </h6>
+            <p>
                 Alpha is another name for the learning rate or step size. It defines the impact new information has
                 when overwriting previous values.
-
-             7) Train -
+            </p>
+            <h6>
+                7) Train
+            </h6>
+            <p>
                 Locks in current parameters and initiates training of the agent. Will display statistical
                 information about the training process in the readout space.
-
-             8) Halt -
+            </p>
+            <h6>
+                8) Halt
+            </h6>
+            <p>
                 Prematurely ends the current session of training or testing.
-
-             9) Test -
+            </p>
+            <h6>
+                9) Test
+            </h6>
+            <p>
                 Set the agent to perform in the environment exclusively according to the current policy and
-                returns results. NOTE: It is advised that the user sets epsilon to zero during testing at this
+                returns results.
+            </p>
+            <p>
+                NOTE: It is advised that the user sets epsilon to zero during testing at this
                 time. It will occasionally produce a bug otherwise. This will be fixed in a future patch.
-
-            10) Save Agent -
+            </p>
+            <h6>
+                10) Save Model
+            </h6>
+            <p>
                 Saves the state of the current agent to a file.
-
-            11) Load Agent -
+            </p>
+            <h6>
+                11) Load Model
+            </h6>
+            <p>
                 Opens a file selection window that allows the user to select an agent to be loaded. The agent
                 must match the Agent/Environment combination selected during the Start Screen of the tab.
-
-            12) Reset -
+            </p>
+            <h6>
+                12) Reset
+            </h6>
+            <p>
                 Sets the parameters and the agent state to the default.
-
-            13) Save Results -
+            </p>
+            <h6>
+                13) Save Results
+            </h6>
+            <p>
                 Opens a file selection window and allows the user to write a save file containing the results of
-                training or testing an agent/environment interaction as a csv file.   TABS AND BUTTONS AND VISUALS
+                training or testing an agent/environment interaction as a csv file.
+            </p>
+            <br>
+            <h5>
+                TABS AND BUTTONS AND VISUALS
+            </h5>
+            <h6>
+                1) Reset
+            </h6>
+            <p>
+                Sets the model to its opening default state.
+            </p>
+            <h6>
+                2) Load Environment
+            </h6>
+            <p>
+                Opens a file selection window that allows the user to load a custom built environment into the set
+                of environments in the scrollable menu.
+            </p>
+            <h6>
+                3) Load Agent
+            </h6>
+            <p>
+                Opens a file selection window and allows the user to load a custom built agent in the set of agents
+                in the scrollable menu.
+            </p>
+            <h6>
+                4) Legend
+            </h6>
+            <p>
+                MSE - Mean squared error for recording the loss of an agent/environment interaction
+            </p>
+            <p>
+                Episode Reward - The resulting reward achieved during an episode
+            </p>
+            <p>
+                Epsilon - The current epsilon value during training
+            </p>
+            <p>
+                These contribute to a readout of the performance of an agent/environment interaction.
+            </p>
+            <h6>
+                5) Toggle Display
+            </h6>
+            <p>
+                Toggles if the environment will be displayed.
+            </p>
+            <h6>
+                6) Save Graph
+            </h6>
+            <p>
+                Saves the displayed graph to the user's system.
+            </p>
+            <h6>
+                7) Toggle Legend
+            </h6>
+            <p>
+                Clicking the legend on the graph can remove or add the legend's data points in the graph.
+            </p>
+            <br>
+            <h5>
+                Advanced - API information:
+            </h5>
+            <h6>
+                The Portal API requires methods for environments and agents as follows -
+            </h6>
+            <h6>
+                 Environment:
+            </h6>
+            <p>
+                Must extend the environment abstract class and contain all abstract methods within and as set forth
+                in the API documentation.
+            </p>
+            <h6>
+                Agent:
+            </h6>
+            <p>
+                Must extend the abstract modelBasedAgent or modelFreeAgent class from the Agents library or one of
+                their child classes and contain all methods therein described by that class and the abstract Agent
+                class and as set forth in the API documentation.
+            </p>
+<!--                the 'display episode speed' parameter can be changed mid-simulation to adjust how quickly the rendering runs. Keep in mind-->
+<!--                that each loop is showing the most recent episode, so if you set it high it will often repeat the same episode and if set-->
+<!--                low it will often skip episodes.-->
 
-           1) Tabs -
-              Each tab is a new thread that works on a different agent/environment combination. Add new tabs by
-              clicking the plus button.
 
-           2) Close Current Tab -
-              This will end the thread being run by the tab and close the tab.
-
-           3) Reset Current Tab -
-              Ends the thread and sets the tab to its opening default state.
-
-           4) Load Environment -
-              Opens a file selection window that allows the user to load a custom built environment into the set
-              of environments in the dropdown menu.
-
-           5) Load Agent -
-              Opens a file selection window and allows the user to load a custom built agent in the set of agents
-              in the dropdown menu.
-
-           6) Legend -
-              MSE - Mean squared error for recording the loss of an agent/environment interaction
-              Episode Reward - The resulting reward achieved during an episode
-              Epsilon - The current epsilon value during training
-              These contribute to a readout of the performance of an agent/environment interaction.
-
-         Advanced - API information:
-
-           The Portal API requires methods for environments and agents as follows -
-
-           - Environment:
-             Must extend the environment abstract class and contain all abstract methods within and as set forth
-             in the API documentation.
-
-           - Agent:
-             Must extend the abstract modelBasedAgent or modelFreeAgent class from the Agents library or one of
-             their child classes and contain all methods therein described by that class and the abstract Agent
-             class and as set forth in the API documentation.
-
-            the 'display episode speed' parameter can be changed mid-simulation to adjust how quickly the rendering runs. Keep in mind
-            that each loop is showing the most recent episode, so if you set it high it will often repeat the same episode and if set
-            low it will often skip episodes.
-
-      </p>
-    </div>
-
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-            crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-            crossorigin="anonymous"></script>
-  </body>
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+    </body>
 
 </html>
