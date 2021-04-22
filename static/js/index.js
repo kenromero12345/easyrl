@@ -1,3 +1,13 @@
+window.onload = function () {
+    imgs = document.getElementsByClassName("indexImg");
+    for (var i = 0; i < imgs.length; i++) {
+        if (!file_exists(imgs[i].src)) {
+            console.log(imgs[i].src)
+            imgs[i].src = "/static/img/noImg.png";
+        }
+    }
+}
+
 function modelSelected() {
     var environments = document.getElementsByName('optionsEnv');
     var agents = document.getElementsByName('options');
@@ -21,8 +31,6 @@ function modelSelected() {
     } else {
         window.alert("You are missing an agent and/or an environment!");
     }
-
-
 }
 
 function file_exists(url){
@@ -32,16 +40,6 @@ function file_exists(url){
     http.send();
 
     return http.status != 404;
-}
-
-window.onload = function () {
-    imgs = document.getElementsByClassName("indexImg");
-    for (var i = 0; i < imgs.length; i++) {
-        if (!file_exists(imgs[i].src)) {
-            console.log(imgs[i].src)
-            imgs[i].src = "/static/img/noImg.png";
-        }
-    }
 }
 
 function envUpdate(inp, allowedEnvs, allowedAgents) {
@@ -74,4 +72,28 @@ function agUpdate(inp, allowedEnvs, allowedAgents) {
     }
 }
 
+function loading(btn, route) {
+    input = btn.previousElementSibling
+    input.style.display = "none";
+    btn.style.display = "none";
+    window.alert("Custom Agent Uploaded");
+    var fr = new FileReader();
+    var temp;
+    fr.onload=function(){
+        temp = fr.result;
+        $.getJSON($SCRIPT_ROOT + route, {
+            file: temp
+        }, function(data) {
+            window.location.reload()
+        });
+    }
+    fr.readAsText(input.files[0]);
+}
 
+function loadCustEnv(btn) {
+    loading(btn, '/custEnv')
+}
+
+function loadCustAg(btn) {
+    loading(btn, '/custAg')
+}

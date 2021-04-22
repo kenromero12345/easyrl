@@ -1,7 +1,9 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet"
+              integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+              crossorigin="anonymous">
         <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/styles.css') }}">
         <script type=text/javascript src="{{  url_for('static', filename='js/model.js') }}"></script>
         <script type=text/javascript src="{{  url_for('static', filename='js/combined.js') }}"></script>
@@ -9,6 +11,7 @@
         <title>EasyRL</title>
     </head>
     <body>
+    <!--    Navigation bar-->
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container-fluid">
                 <a class="navbar-brand" href="/index">EasyRL</a>
@@ -33,19 +36,21 @@
             </div>
         </nav>
 
+    <!--top buttons-->
         <div class="topBtn">
-            <button type="button" class="btn btn-success btn-lg btn-block, modelButtons" onclick="train()">
+            <button type="button" class="btn btn-success btn-lg btn-block, modelButtons" onclick="train()" id="trainBtn">
                 Train</button>
             <button type="button" class="btn btn-warning btn-lg btn-block, modelButtons" onclick="halt()">
                 Halt</button>
-            <button type="button" class="btn btn-success btn-lg btn-block, modelButtons" onclick="test()">
+            <button type="button" class="btn btn-success btn-lg btn-block, modelButtons" onclick="test()" id="testBtn">
                 Test</button>
             <button type="button" class="btn btn-danger btn-lg btn-block, modelButtons" onclick="reset()">
                 Reset</button>
             <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
-                    onClick="makeLoadVisible(this)">Load Model</button>
-            <input class="form-control" type="file"/>
-            <button type="button" class="btn btn-primary btn-lg btn-block, loadBtn" onClick="loadModel(this)">Upload</button>
+                    onClick="makeLoadVisible(this)" id="loadModBtn">Load Model</button>
+            <input class="form-control" type="file" id="uploadModIn"/>
+            <button type="button" class="btn btn-primary btn-lg btn-block, loadBtn" onClick="loadModel(this)"
+                    id="uploadModBtn">Upload</button>
             <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
                     onClick="makeSaveComponentsVisible(this);">Save Model</button>
             <input type="text" class="form-control, saveName" placeholder="filename" aria-label="filename"
@@ -61,6 +66,7 @@
                     onClick="saveResults(this)">Download</button>
         </div>
 
+    <!--hyperparameters-->
         <div class="modelLeft">
             {% for p in params %}
             <div class="hyperparameters">
@@ -77,18 +83,22 @@
         </div>
 
         <div class="modelRight">
+            <!--graph-->
             <div id="chartContainer"></div>
             <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+
+<!--            legends and checkbox-->
             <div>
                     <label id="totalTrainingRewardLbl">Total Training Reward: </label>
                     <label id="totalTrainingReward">0</label>
                     <label id="rewardPerEpisodeLbl">Reward/Episode: </label>
                     <label id="rewardPerEpisode">0</label>
-                    <div class="custom-control custom-switch">
-                      <input type="checkbox" class="custom-control-input" id="envSwitch" onchange="displayUpdate(this)">
-                      <label class="custom-control-label" for="envSwitch">Display</label>
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" id="envSwitch" onchange="displayUpdate(this)">
+                      <label class="form-check-label" for="envSwitch">Display</label>
                     </div>
             </div>
+<!--            display-->
             <img class="modelImg" src="{{ url_for('static',filename='img/tempEnv.png') }}"/>
         </div>
 
@@ -101,293 +111,24 @@
             var isRunning = false;
             var chart = null;
             var isReset = false;
-            var totalTrainingReward = document.querySelector("#totalTrainingReward");
-            var rewardPerEpisode = document.querySelector("#rewardPerEpisode");
+            var totalTrainingReward = document.getElementById("totalTrainingReward");
+            var rewardPerEpisode = document.getElementById("rewardPerEpisode");
             var totalTrainingRewardVal = 0;
             var htmlImg = document.querySelector(".modelImg");
             var isDisplaying = false;
+            var trainBtn = document.getElementById("trainBtn");
+            var testBtn = document.getElementById("testBtn");
+            var loadModBtn = document.getElementById("loadModBtn");
+            var uploadModIn = document.getElementById("uploadModIn");
+            var uploadModBtn = document.getElementById("uploadModBtn");
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-
-            window.onload = function () {
-                chart = createChart();
-                chart.render();
-            }
-
-            function displayRecursion() {
-                if (isDisplaying) {
-                    $.get($SCRIPT_ROOT + '/tempImage', function() {
-                        htmlImg.src = "{{ url_for('tempImage')}}";
-                        displayRecursion()
-                    })
-                }
-            }
-
-            function displayUpdate(cb) {
-                if(cb.checked) {
-                    isDisplaying = true;
-                    displayRecursion();
-                } else {
-                    isDisplaying = false;
-                }
-            }
-
-            function createChart() {
-                var chart = new CanvasJS.Chart("chartContainer", {
-                    title :{
-                        text: "Dynamic Data"
-                    },
-                    legend: {
-                        cursor: "pointer",
-                        itemclick: toggleDataSeries
-                    },
-                    toolTip: {
-                        shared: true
-                    },
-                    axisY:[{
-                        title: "Reward",
-                        lineColor: "green",
-                        tickColor: "green",
-                        labelFontColor: "green",
-                        titleFontColor: "green",
-                        includeZero: true,
-                    },
-                    {
-                        title: "MSE Episode Loss",
-                        lineColor: "red",
-                        tickColor: "red",
-                        labelFontColor: "red",
-                        titleFontColor: "red",
-                        includeZero: true,
-                    },
-                    {
-                        title: "Epsilon",
-                        lineColor: "blue",
-                        tickColor: "blue",
-                        labelFontColor: "blue",
-                        titleFontColor: "blue",
-                        includeZero: true,
-                    }],
-                    data: [{
-                        type: "line",
-                        name: "MSE Episode Loss",
-                        dataPoints: dpsLoss,
-                        showInLegend: true,
-                        axisYIndex: 1,
-                        color: "red",
-                    }, {
-                        type: "line",
-                        name: "Reward",
-                        dataPoints: dpsReward,
-                        showInLegend: true,
-                        axisYIndex: 0,
-                        color: "green",
-                    }, {
-                        type: "line",
-                        name: "Epsilon",
-                        dataPoints: dpsEpsilon,
-                        showInLegend: true,
-                        axisYIndex: 2,
-                        color: "blue",
-                    }],
-                    exportEnabled: true,
-                    width: 600,
-                    height:250,
-                });
-                return chart;
-            }
-
-            function toggleDataSeries(e) {
-                if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
-                    e.dataSeries.visible = false;
-                } else {
-                    e.dataSeries.visible = true;
-                }
-                e.chart.render();
-            }
-
-            function reset() {
-                if (isRunning) {
-                    console.log("about to reset")
-                    isRunning = false;
-                    isReset = true;
-                } else {
-                    console.log("reset")
-                    chartReset();
-                }
-                $.getJSON($SCRIPT_ROOT + '/reset');
-            }
-
-            function halt() {
-                isRunning = false;
-                $.getJSON($SCRIPT_ROOT + '/halt')
-            }
-
-            function chartReset() {
-                dpsLoss = []
-                dpsReward = []
-                dpsEpsilon = []
-                xVal = 1;
-                chart = createChart()
-                chart.render()
-                totalTrainingRewardVal = 0
-                totalTrainingReward.innerHTML = 0
-                rewardPerEpisode.innerHTML = 0
-            }
-
-            function test() {
-                if (!isRunning) {
-                    var lists = document.querySelectorAll("input[type=range]");
-                    var params = {}
-                    for (var i = 0; i < lists.length; i++) {
-                        params[i] = lists[i].value;
-                    }
-                    $.getJSON($SCRIPT_ROOT + '/startTest', params, function(data) {
-                        if (data.model) {
-                                isRunning = true;
-                                chartReset()
-                                testRecursion()
-                        } else {
-                            window.alert("Model has not been trained!");
-                        }
-                    });
-                }
-            }
-
-            function train() {
-                if (!isRunning) {
-                    isRunning = true;
-                    chartReset()
-                    var lists = document.querySelectorAll("input[type=range]");
-                    var params = {}
-                    for (var i = 0; i < lists.length; i++) {
-                        params[i] = lists[i].value;
-                    }
-                    $.getJSON($SCRIPT_ROOT + '/startTrain', params, function(data) {
-                        trainRecursion()
-                    });
-                }
-            }
-
-            function testRecursion() {
-                $.getJSON($SCRIPT_ROOT + '/runTest', function(data) {
-                    if (data.finished) {
-                        isRunning = false
-                    } else {
-                        if (isReset) {
-                            isRunning = false
-                            isReset = false
-                            chartReset()
-                        } else {
-                            chartRewardAdd(xVal, data.reward)
-                            xVal++;
-                            chart.render();
-                            testRecursion()
-                            totalTrainingRewardVal += data.reward
-                            totalTrainingReward.innerHTML = totalTrainingRewardVal
-                            rewardPerEpisode.innerHTML = (totalTrainingRewardVal/xVal).toFixed(4)
-                        }
-                    }
-                });
-            }
-
-            function trainRecursion() {
-                $.getJSON($SCRIPT_ROOT + '/runTrain', function(data) {
-                    if (data.finished) {
-                        isRunning = false
-                    } else {
-                        if (isReset) {
-                            isRunning = false
-                            isReset = false
-                            chartReset()
-                        } else {
-                            chartLossAdd(xVal, data.loss)
-                            chartRewardAdd(xVal, data.reward)
-                            chartEpsilonAdd(xVal, data.epsilon)
-<!--                            HtmlImg.src = "data:image/png;base64, " +-->
-                            xVal++;
-                            chart.render();
-                            trainRecursion()
-                            totalTrainingRewardVal += data.reward
-                            totalTrainingReward.innerHTML = totalTrainingRewardVal
-                            rewardPerEpisode.innerHTML = (totalTrainingRewardVal/xVal).toFixed(4)
-                        }
-                    }
-                });
-            }
-
-            function chartLossAdd(index, loss) {
-                dpsLoss.push({
-                    x: index,
-                    y: loss
-                });
-            }
-
-            function chartRewardAdd(index, reward) {
-                dpsReward.push({
-                    x: index,
-                    y: reward
-                });
-            }
-
-            function chartEpsilonAdd(index, epsilon) {
-                dpsEpsilon.push({
-                    x: index,
-                    y: epsilon
-                });
-            }
-
-            function saveResults(btn) {
-                input = btn.previousElementSibling;
-                var results = "";
-                for(var i = 0; i < dpsLoss.length; i++) {
-                    results += (i+1) + ", " + dpsLoss[i].y + ", " + dpsReward[i].y + ", " + dpsEpsilon[i].y + "\n";
-                }
-                download(results, input.value, "txt")
-                input.style.display = "none";
-                btn.style.display = "none";
-                input.value = "";
-            }
-
-            function saveModel(btn) {
-                input = btn.previousElementSibling;
-                $.getJSON($SCRIPT_ROOT + '/saveModel', function(data) {
-                    download(data.agent, input.value, "txt")
-                    input.style.display = "none";
-                    btn.style.display = "none";
-                    input.value = "";
-                });
-            }
-
-            function loadModel(btn) {
-                input = btn.previousElementSibling
-                input.style.display = "none";
-                btn.style.display = "none";
-                var fr = new FileReader();
-                var temp;
-                fr.onload=function(){
-                    temp = fr.result;
-                    $.getJSON($SCRIPT_ROOT + '/loadModel', {
-                        agent: temp
-                    }, function(data) {
-                        if (data.success) {
-                            window.alert("Model Uploaded");
-                        } else {
-                            window.alert("Incorrect Model! Loading Unsuccessful");
-                        }
-                        input.style.display = "none";
-                        btn.style.display = "none";
-                        input.value = "";
-                    });
-                }
-                fr.readAsText(input.files[0]);
-            }
+            var tempImgUrl = "{{ url_for('tempImage')}}"
         </script>
-
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"
-                integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut"
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"
+                integrity="sha384-SR1sx49pcuLnqZUnnPwx6FCym0wLsk5JZuNx2bPPENzswTNFaQU1RDvt3wT4gWFG"
                 crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"
-                integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js"
+                integrity="sha384-j0CNLUeiqtyaRmlzUHCPZ+Gy5fQu0dQ6eZ/xAww941Ai1SxSY+0EQqNXNE6DZiVc"
                 crossorigin="anonymous"></script>
     </body>
 </html>

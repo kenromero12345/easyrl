@@ -4,8 +4,6 @@ body {
     overflow-x: hidden;
 }
 
-
-
 /*page 1 and 2*/
 input[type=file] {
     display:none;
@@ -52,7 +50,6 @@ input[type=file] {
 .agentBtn {
     margin-top: 10px;
     padding-right:20px;
-    /*margin-right:20px;*/
     float:left;
 }
 
@@ -60,38 +57,16 @@ input[type=file] {
     padding-left: 20px;
 }
 
-/*
-.indexLbl {
-    margin-left:20px;
-    margin-bottom:20px;
-
-    width:50%;
-}*/
-/*
-.environmentInput {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-}*/
-/*
-input[type=radio]:checked + div {
-  outline: 6px solid blue;
-}*/
-
 input[type=radio]:checked ~ div {
   outline: 2px solid lightblue;
 }
 
 label.btn {
-    width:100%
+    width:100%;
 }
 
 .agentBtns {
     overflow-x: scroll;
-    /*
-	width: 100%
-    height:10%;*/
     width: 100%;
     height: 70px;
     display: flex;
@@ -147,16 +122,11 @@ h1 {
 }
 
 .hyperparameter input[type=range] {
-    /*display: inline-block;*/
     width:40%;
     float:left;
     margin-left:20px;
     margin-right:20px;
 }
-/*
-.hyperparameters {
-    display:inline-block;
-}*/
 
 .customInput {
     width:15%;
@@ -168,11 +138,6 @@ h1 {
     width:200px;
 }
 
-/*
-.environment + img {
-    cursor: pointer;
-}*/
-
 .modelLeft {
     float:left;
     width:50%;
@@ -182,12 +147,10 @@ h1 {
 .modelRight {
     float:right;
     padding-right:20px;
-    /*width 150px;*/
     width:50%;
 }
 
 #chartContainer {
-    /*background-color: red;*/
     width: 100%
     float:left;
     padding-bottom:260px;
@@ -203,14 +166,11 @@ h1 {
     margin-right:20px;
 }
 
-/**/
-
 .aboutContainer {
     padding-left:20px;
     padding-right:20px;
     margin-top:10px;
 }
-/**/
 
 .helpContainer {
     padding-left:20px;
