@@ -161,7 +161,7 @@ def runTrain():
             if temp.data.reward:
                 episodeAccReward += temp.data.reward
             if temp.data.image:
-                tempImages.append(temp.data.image)
+                tempImages.append((temp.data.image, temp.data.episode, temp.data.step))
 
         temp = msg.get(block=True)
 
@@ -173,14 +173,29 @@ def runTrain():
 # display an image for this route
 @app.route('/tempImage')
 def tempImage():
-    global noImg
-    print(len(tempImages))
+    global noImg, curEp, curStep, curFin
     if len(tempImages) == 1:
-        return serve_pil_image(tempImages[0])  # image stop at the last 1
+        curEp = tempImages[1]
+        curStep = tempImages[2]
+        curFin = True
+        return serve_pil_image(tempImages[0][0])  # image stop at the last 1
     if tempImages:
-        return serve_pil_image(tempImages.pop(0))  # image for model
+        temp = tempImages.pop(0)
+        curEp = temp[1]
+        curStep = temp[2]
+        curFin = False
+        return serve_pil_image(temp[0])  # image for model
     else:
+        curEp = 0
+        curStep = 0
+        curFin = True
         return serve_pil_image(noImg)  # image for no display
+
+
+# display the episode and step number of the displayed environment
+@app.route('/tempImageEpStep')
+def tempImageEpStep():
+    return jsonify(episode=curEp, step=curStep, finished=curFin)
 
 
 # starting testing
@@ -226,7 +241,7 @@ def runTest():
             if temp.data.reward:
                 episodeAccReward += temp.data.reward
             if temp.data.image:
-                tempImages.append(temp.data.image)
+                tempImages.append((temp.data.image, temp.data.episode, temp.data.step))
         temp = msg.get(block=True)
 
     return jsonify(reward=episodeAccReward, finished=False)
@@ -347,5 +362,7 @@ if __name__ == "__main__":
     inputParams = []  # input hyper parameters
     tempImages = []  # image queue
     noImg = PIL.Image.open("./static/img/noImg.png")  # image for when the agent has no image
-
+    curEp = 0
+    curStep = 0
+    curFin = False
     app.run()

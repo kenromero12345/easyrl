@@ -1,3 +1,5 @@
+
+//making load elements visible
 function makeLoadVisible(button) {
     input = button.nextElementSibling;
     uploadBtn = input.nextElementSibling;
@@ -9,6 +11,7 @@ function makeLoadVisible(button) {
     }
 }
 
+//hiding upload and download elements that could be hidden
 function hideUploadDownload() {
     comps = document.querySelectorAll("input[type=file], .loadBtn, .saveName, .saveNameBtn");
     for (i = 0; i < comps.length; i++) {

@@ -1,15 +1,18 @@
+//slider change updates text input
 function updateSlider(slider) {
-    var txtIn = slider.parentElement.querySelector(".customInput");
+    var txtIn = slider.parentElement.querySelector(".customInput"); //get input
     txtIn.value = slider.value;
 }
 
+//text input change updates slider
 function updateInput(input) {
-    var slider = input.parentElement.querySelector("input[type=range]");
+    var slider = input.parentElement.querySelector("input[type=range]"); //get slider
 
-    if (input.value > slider.max) {
+    //validation
+    if (input.value > slider.max) { // if text input is above the max
         slider.value = slider.max;
         input.value = slider.max;
-    } else if (input.value < slider.min) {
+    } else if (input.value < slider.min) { // if text input is below the min
         slider.value = slider.min;
         input.value = slider.min;
     } else {
@@ -17,6 +20,7 @@ function updateInput(input) {
     }
 }
 
+// save components visible
 function makeSaveComponentsVisible(button) {
     input = button.nextElementSibling;
     downloadBtn = input.nextElementSibling;
@@ -29,7 +33,8 @@ function makeSaveComponentsVisible(button) {
 }
 
 /*
-    Copied from stackoverflow
+    Copied from stackoverflow to help download files
+    https://stackoverflow.com/questions/3665115/how-to-create-a-file-in-memory-for-user-to-download-but-not-through-server
 */
 function download(data, filename, type) {
     var file = new Blob([data], {type: type});
@@ -49,20 +54,24 @@ function download(data, filename, type) {
     }
 }
 
+// testing model
 function test() {
     if (!isRunning) {
-        var lists = document.querySelectorAll("input[type=range]");
+        //get parameters
+        var lists = document.querySelectorAll("input[type=range]"); // get parameter components
         var params = {}
         for (var i = 0; i < lists.length; i++) {
             params[i] = lists[i].value;
         }
+
+        // send to start test
         $.getJSON($SCRIPT_ROOT + '/startTest', params, function(data) {
             if (data.model) {
-                trainBtn.disabled = true;
-                updateLoadModDisabled(true);
+                trainBtn.disabled = true; // disable train
+                updateLoadModDisabled(true); // disable loading model feature
                 isRunning = true;
                 chartReset();
-                testRecursion();
+                testRecursion(); // start testing
             } else {
                 window.alert("Model has not been trained!");
             }
@@ -70,39 +79,47 @@ function test() {
     }
 }
 
+
+//training the model
 function train() {
     if (!isRunning) {
-        testBtn.disabled = true;
-        updateLoadModDisabled(true);
+        testBtn.disabled = true; // disable testing
+        updateLoadModDisabled(true); // disable load model feature
         isRunning = true;
         chartReset()
-        var lists = document.querySelectorAll("input[type=range]");
+
+        //get parameters
+        var lists = document.querySelectorAll("input[type=range]"); // get parameter components
         var params = {}
         for (var i = 0; i < lists.length; i++) {
             params[i] = lists[i].value;
         }
+
+        //send to start train
         $.getJSON($SCRIPT_ROOT + '/startTrain', params, function(data) {
             trainRecursion()
         });
     }
 }
 
+//running testing per episode
 function testRecursion() {
+    //send to test an episode
     $.getJSON($SCRIPT_ROOT + '/runTest', function(data) {
-        if (data.finished) {
+        if (data.finished) { //testing is complete
             isRunning = false;
             trainBtn.disabled = false;
             updateLoadModDisabled(false);
         } else {
-            if (isReset) {
+            if (isReset) { //reset is clicked while testing
                 isRunning = false;
                 isReset = false;
                 chartReset();
                 trainBtn.disabled = false;
                 updateLoadModDisabled(false);
-            } else {
-                chartRewardAdd(xVal, data.reward);
-                xVal++;
+            } else { // testing code
+                chartRewardAdd(xVal, data.reward); //add reward to chart
+                xVal++; // episode number +1
                 chart.render();
                 testRecursion();
                 totalTrainingRewardVal += data.reward;
@@ -113,24 +130,27 @@ function testRecursion() {
     });
 }
 
+//running training per episode
 function trainRecursion() {
     $.getJSON($SCRIPT_ROOT + '/runTrain', function(data) {
-        if (data.finished) {
+        if (data.finished) { //training is complete
             isRunning = false;
             testBtn.disabled = false;
             updateLoadModDisabled(false);
         } else {
-            if (isReset) {
+            if (isReset) { //reset is clicked while training
                 isRunning = false;
                 isReset = false;
                 chartReset();
                 testBtn.disabled = false;
                 updateLoadModDisabled(false);
-            } else {
+            } else { //training code
+                //add data to chart
                 chartLossAdd(xVal, data.loss);
                 chartRewardAdd(xVal, data.reward);
                 chartEpsilonAdd(xVal, data.epsilon);
-                xVal++;
+
+                xVal++;// episode number +1
                 chart.render();
                 trainRecursion();
                 totalTrainingRewardVal += data.reward;
@@ -140,6 +160,8 @@ function trainRecursion() {
         }
     });
 }
+
+//add loss to chart
 function chartLossAdd(index, loss) {
     dpsLoss.push({
         x: index,
@@ -147,6 +169,7 @@ function chartLossAdd(index, loss) {
     });
 }
 
+//add reward to chart
 function chartRewardAdd(index, reward) {
     dpsReward.push({
         x: index,
@@ -154,6 +177,7 @@ function chartRewardAdd(index, reward) {
     });
 }
 
+//add epsilon to chart
 function chartEpsilonAdd(index, epsilon) {
     dpsEpsilon.push({
         x: index,
@@ -161,52 +185,68 @@ function chartEpsilonAdd(index, epsilon) {
     });
 }
 
+//save results of the chart data
 function saveResults(btn) {
     input = btn.previousElementSibling;
     var results = "";
     for(var i = 0; i < dpsLoss.length; i++) {
         results += (i+1) + ", " + dpsLoss[i].y + ", " + dpsReward[i].y + ", " + dpsEpsilon[i].y + "\n";
     }
-    download(results, input.value, "txt")
+
+    download(results, input.value, "txt") // download to user's system
+
+    // hide components
     input.style.display = "none";
     btn.style.display = "none";
-    input.value = "";
+
+    input.value = ""; // input text clear
 }
 
+// saving model
 function saveModel(btn) {
     input = btn.previousElementSibling;
+
+    //send to save the current model
     $.getJSON($SCRIPT_ROOT + '/saveModel', function(data) {
-        download(data.agent, input.value, "txt")
+        download(data.agent, input.value, "txt")// download to user's system
+
+        //hide components
         input.style.display = "none";
         btn.style.display = "none";
-        input.value = "";
+
+        input.value = ""; // input text clear
     });
 }
 
+//loading model
 function loadModel(btn) {
     input = btn.previousElementSibling
-    input.style.display = "none";
-    btn.style.display = "none";
+
+    //loading file
     var fr = new FileReader();
     var temp;
     fr.onload=function(){
         temp = fr.result;
-        $.getJSON($SCRIPT_ROOT + '/loadModel', {
+        $.getJSON($SCRIPT_ROOT + '/loadModel', { //send to load model
             agent: temp
         }, function(data) {
-            if (data.success) {
+            if (data.success) { // data is loaded successfully
                 window.alert("Model Uploaded");
+
+                //load model components hidden
+                input.style.display = "none";
+                btn.style.display = "none";
+                input.value = "";
             } else {
                 window.alert("Incorrect Model! Loading Unsuccessful");
             }
-            input.style.display = "none";
-            btn.style.display = "none";
-            input.value = "";
+
         });
     }
-    fr.readAsText(input.files[0]);
+    fr.readAsText(input.files[0]); //read file
 }
 
+//toggle the data in the graph
 function toggleDataSeries(e) {
     if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
         e.dataSeries.visible = false;
@@ -216,21 +256,24 @@ function toggleDataSeries(e) {
     e.chart.render();
 }
 
+//reset the graph, display, and the model
 function reset() {
     if (isRunning) {
         isRunning = false;
-        isReset = true;
+        isReset = true; // reset flag is up
     } else {
         chartReset();
     }
-    $.getJSON($SCRIPT_ROOT + '/reset');
+    $.getJSON($SCRIPT_ROOT + '/reset'); // send to reset model
 }
 
+//halt training or testing
 function halt() {
     isRunning = false;
     $.getJSON($SCRIPT_ROOT + '/halt')
 }
 
+//reset the graph
 function chartReset() {
     dpsLoss = []
     dpsReward = []
@@ -243,11 +286,12 @@ function chartReset() {
     rewardPerEpisode.innerHTML = 0
 }
 
+//initialize the chart
 function createChart() {
     var chart = new CanvasJS.Chart("chartContainer", {
-        title :{
-            text: "Dynamic Data"
-        },
+//        title :{
+//            text: "Dynamic Data"
+//        },
         legend: {
             cursor: "pointer",
             itemclick: toggleDataSeries
@@ -302,12 +346,13 @@ function createChart() {
             color: "blue",
         }],
         exportEnabled: true,
-        width: 600,
+        width: 800,
         height:250,
     });
     return chart;
 }
 
+//display change if an image exist
 function displayUpdate(cb) {
     if(cb.checked) {
         isDisplaying = true;
@@ -317,21 +362,32 @@ function displayUpdate(cb) {
     }
 }
 
+//disable load model components
 function updateLoadModDisabled(bool) {
     loadModBtn.disabled = bool;
     uploadModIn.disabled = bool;
     uploadModBtn.disabled = bool;
 }
 
+//display change helper recursion
 function displayRecursion() {
     if (isDisplaying) {
         $.get($SCRIPT_ROOT + '/tempImage', function() {
             htmlImg.src = tempImgUrl;
+            $.get($SCRIPT_ROOT + '/tempImageEpStep', function(data) {
+                displayEnvEp.innerHTML = data.episode;
+                displayEnvStep.innerHTML = data.step;
+                if (data.finished) {
+                    envSwitch.checked = false;
+                    isDisplaying = false;
+                }
+            })
             displayRecursion()
         })
     }
 }
 
+//load the chart
 window.onload = function () {
     chart = createChart();
     chart.render();

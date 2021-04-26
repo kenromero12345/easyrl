@@ -89,14 +89,20 @@
 
 <!--            legends and checkbox-->
             <div>
-                    <label id="totalTrainingRewardLbl">Total Training Reward: </label>
-                    <label id="totalTrainingReward">0</label>
-                    <label id="rewardPerEpisodeLbl">Reward/Episode: </label>
-                    <label id="rewardPerEpisode">0</label>
-                    <div class="form-check form-switch">
-                      <input class="form-check-input" type="checkbox" id="envSwitch" onchange="displayUpdate(this)">
-                      <label class="form-check-label" for="envSwitch">Display</label>
-                    </div>
+                <label id="totalTrainingRewardLbl">Total Training Reward: </label>
+                <label id="totalTrainingReward">0</label>
+                <label id="rewardPerEpisodeLbl">Reward/Episode: </label>
+                <label id="rewardPerEpisode">0</label>
+            </div>
+            <div>
+                <label id="displayEnvEpLbl">Display Episode: </label>
+                <label id="displayEnvEp">0</label>
+                <label id="displayEnvStepLbl">Display Step: </label>
+                <label id="displayEnvStep">0</label>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="envSwitch" onchange="displayUpdate(this)">
+                  <label class="form-check-label" for="envSwitch">Display</label>
+                </div>
             </div>
 <!--            display-->
             <img class="modelImg" src="{{ url_for('static',filename='img/tempEnv.png') }}"/>
@@ -121,8 +127,11 @@
             var loadModBtn = document.getElementById("loadModBtn");
             var uploadModIn = document.getElementById("uploadModIn");
             var uploadModBtn = document.getElementById("uploadModBtn");
+            var displayEnvEp = document.getElementById("displayEnvEp");
+            var displayEnvStep = document.getElementById("displayEnvStep");
+            var envSwitch = document.getElementById("envSwitch");
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-            var tempImgUrl = "{{ url_for('tempImage')}}"
+            var tempImgUrl = "{{ url_for('tempImage')}}";
         </script>
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"
                 integrity="sha384-SR1sx49pcuLnqZUnnPwx6FCym0wLsk5JZuNx2bPPENzswTNFaQU1RDvt3wT4gWFG"

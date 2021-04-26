@@ -1,99 +1,112 @@
 window.onload = function () {
-    imgs = document.getElementsByClassName("indexImg");
+//    update image for custom environments and agents
+    imgs = document.getElementsByClassName("indexImg"); // get all custom environment and agents
     for (var i = 0; i < imgs.length; i++) {
-        if (!file_exists(imgs[i].src)) {
-            console.log(imgs[i].src)
-            imgs[i].src = "/static/img/noImg.png";
+        if (!file_exists(imgs[i].src)) { // check if image exists
+            imgs[i].src = "/static/img/noImg.png"; // change image
         }
     }
 }
 
+// selecting the model
 function modelSelected() {
-    var environments = document.getElementsByName('optionsEnv');
-    var agents = document.getElementsByName('options');
+    var environments = document.getElementsByName('optionsEnv'); // get environments
+    var agents = document.getElementsByName('options'); // get agents
     var agent;
     var environment;
 
+    //get chosen agent
     for(i = 0; i < agents.length; i++) {
         if(agents[i].checked) {
             agent = agents[i].id;
         }
     }
 
+    //get chosen environment
     for(i = 0; i < environments.length; i++) {
         if(environments[i].checked) {
             environment = environments[i].id;
         }
     }
 
-    if (agent && environment) {
-        location.replace("/model/" + environment + "/" + agent);
+    if (agent && environment) { // if agent and environment exists
+        location.replace("/model/" + environment + "/" + agent); // change location to the new model
     } else {
-        window.alert("You are missing an agent and/or an environment!");
+        window.alert("You are missing an agent and/or an environment!"); // error
     }
 }
 
+//checks if url exist
 function file_exists(url){
     var http = new XMLHttpRequest();
 
     http.open('HEAD', url, false);
     http.send();
 
-    return http.status != 404;
+    return http.status != 404; // no url exist
 }
 
+//chosen environement update
 function envUpdate(inp, allowedEnvs, allowedAgents) {
-    curAgents = allowedAgents[inp.id]
-    if (curAgents.length != 0){
-        agentsDiv = document.querySelectorAll(".agentBtn")
-        for (var i=0; i<agentsDiv.length; i++) {
-            agentsIn = agentsDiv[i].firstElementChild;
-            if (curAgents.includes(agentsIn.id) || !agentsIn.id in allowedEnvs) {
-                agentsIn.disabled = false;
+    curAgents = allowedAgents[inp.id] // get agents allowed to pair
+    if (curAgents.length != 0){ // if there are allowed agents
+        agentsDiv = document.querySelectorAll(".agentBtn") // get all agents
+        for (var i=0; i<agentsDiv.length; i++) { // iterate through all agents
+            agentsIn = agentsDiv[i].firstElementChild; // get the input element of the agent
+            if (curAgents.includes(agentsIn.id) || !agentsIn.id in allowedEnvs) { // if agent is not allowed
+                agentsIn.disabled = false; // disable the agent
             } else {
-                agentsIn.disabled = true;
+                agentsIn.disabled = true; // enable the agent
             }
         }
     }
 }
 
+// chosen agent update
 function agUpdate(inp, allowedEnvs, allowedAgents) {
-    curEnvs = allowedEnvs[inp.id]
-    if (curEnvs.length != 0){
-        envsDiv = document.querySelectorAll(".environmentCustImg")
-        for (var i=0; i<envsDiv.length; i++) {
-            envsIn = envsDiv[i].firstElementChild;
-            if (curEnvs.includes(envsIn.id) || !envsIn.id in allowedAgents) {
-                envsIn.disabled = false;
+    curEnvs = allowedEnvs[inp.id] // get environment allowed to pair
+    if (curEnvs.length != 0){ // if there are allowed environments
+        envsDiv = document.querySelectorAll(".environmentCustImg") //get all environments
+        for (var i=0; i<envsDiv.length; i++) { // iterate through all environments
+            envsIn = envsDiv[i].firstElementChild; // get the input element of the environment
+            if (curEnvs.includes(envsIn.id) || !envsIn.id in allowedAgents) { // if environment is not allowed
+                envsIn.disabled = false; // disable the environment
             } else {
-                envsIn.disabled = true;
+                envsIn.disabled = true; // enable the environment
             }
         }
     }
 }
 
+// loading either a custom environment or agent
 function loading(btn, route) {
-    input = btn.previousElementSibling
+    input = btn.previousElementSibling // input element
+
+    // loading elements hide
     input.style.display = "none";
     btn.style.display = "none";
-    window.alert("Custom Agent Uploaded");
+
+    window.alert("Upload Success"); // popup message
+
     var fr = new FileReader();
-    var temp;
-    fr.onload=function(){
-        temp = fr.result;
-        $.getJSON($SCRIPT_ROOT + route, {
-            file: temp
-        }, function(data) {
-            window.location.reload()
+    var temp; // temporary space for input file text
+    fr.onload=function(){ // when loading file text
+        temp = fr.result; // get data string
+        $.getJSON($SCRIPT_ROOT + route, { // communicate with flask
+            file: temp //send data
+        }, function(data) { // on success
+            window.location.reload() // refresh page
         });
     }
-    fr.readAsText(input.files[0]);
+    fr.readAsText(input.files[0]); // load input file text
 }
 
+// loading custom environment
 function loadCustEnv(btn) {
     loading(btn, '/custEnv')
 }
 
+// loading custom agent
 function loadCustAg(btn) {
     loading(btn, '/custAg')
 }

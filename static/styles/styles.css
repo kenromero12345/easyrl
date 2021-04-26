@@ -102,7 +102,7 @@ h1 {
 
 /*page2*/
 
-#rewardPerEpisode + div {
+#displayEnvStep + div {
     display: inline-block;
     float:right;
     margin-right:10px;
@@ -116,13 +116,21 @@ h1 {
     margin-left: 20px;
 }
 
+#displayEnvEpLbl {
+    margin-left: 20px;
+}
+
+#displayEnvStepLbl {
+    margin-left: 20px;
+}
+
 .modelImg {
     width:100%;
-    height:280px;
+    height:260px;
 }
 
 .hyperparameter input[type=range] {
-    width:40%;
+    width:35%;
     float:left;
     margin-left:20px;
     margin-right:20px;
@@ -140,14 +148,14 @@ h1 {
 
 .modelLeft {
     float:left;
-    width:50%;
+    width:40%;
     margin-top:20px;
 }
 
 .modelRight {
     float:right;
     padding-right:20px;
-    width:50%;
+    width:60%;
 }
 
 #chartContainer {

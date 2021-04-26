@@ -77,7 +77,7 @@ class Model:
                     if (self.cloudBridge is not None):
                         self.cloudBridge.submitStep(frame, epsilon, reward, loss)
 
-                    modelState = Model.State(frame, epsilon, reward, loss)
+                    modelState = Model.State(frame, epsilon, reward, loss, episode + 1, step + 1)
                     message = Model.Message(Model.Message.STATE, modelState)
                     messageQueue.put(message)
 
@@ -134,7 +134,7 @@ class Model:
                                 self.cloudBridge.submitStep(frame, 0, reward, 0)
                             
                             # Send the state from the step.
-                            modelState = Model.State(frame, None, reward, None)
+                            modelState = Model.State(frame, None, reward, None, episode + 1, step + 1)
                             message = Model.Message(Model.Message.STATE, modelState)
                             messageQueue.put(message)
 
@@ -169,7 +169,7 @@ class Model:
                             self.cloudBridge.submitStep(frame, 0, reward, 0)
                         
                         # Send the state from the step.
-                        modelState = Model.State(frame, None, reward, None)
+                        modelState = Model.State(frame, None, reward, None, episode + 1, step + 1)
                         message = Model.Message(Model.Message.STATE, modelState)
                         messageQueue.put(message)
 
@@ -180,7 +180,7 @@ class Model:
                     loss = self.agent.update(episode_trajectory)
                     
                 # Send the loss of this episode.
-                modelState = Model.State(None, None, 0, loss)
+                modelState = Model.State(None, None, 0, loss, episode + 1, step + 1)
                 message = Model.Message(Model.Message.STATE, modelState)
                 messageQueue.put(message)
                 
@@ -253,7 +253,7 @@ class Model:
                             self.cloudBridge.submitStep(frame, 0, reward, 0)
                         
                         # Send the state from the step.
-                        modelState = Model.State(frame, None, reward, None)
+                        modelState = Model.State(frame, None, reward, None, episode + 1, step + 1)
                         message = Model.Message(Model.Message.STATE, modelState)
                         messageQueue.put(message)
 
@@ -292,7 +292,7 @@ class Model:
                         if (self.cloudBridge is not None):
                             self.cloudBridge.submitStep(frame, 0, reward, 0)
                         
-                        modelState = Model.State(frame, None, reward, None)
+                        modelState = Model.State(frame, None, reward, None, episode + 1, step + 1)
                         message = Model.Message(Model.Message.STATE, modelState)
                         messageQueue.put(message)
 
@@ -350,8 +350,10 @@ class Model:
             self.data = data
 
     class State:
-        def __init__(self, image, epsilon, reward, loss):
+        def __init__(self, image, epsilon, reward, loss, episode, step):
             self.image = image
             self.epsilon = epsilon
             self.reward = reward
             self.loss = loss
+            self.episode = episode
+            self.step = step
