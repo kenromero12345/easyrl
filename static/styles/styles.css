@@ -92,7 +92,13 @@ h1 {
     margin-left: 20px;
 }
 
-#h1Agent {
+#hEnvironment {
+    margin-top: 20px;
+    margin-left: 20px;
+}
+
+#hAgent {
+    margin-left: 20px;
     margin-top: 40px;
 }
 
@@ -102,13 +108,9 @@ h1 {
 
 /*page2*/
 
-#displayEnvStep + div {
+.form-switch {
     display: inline-block;
-    float:right;
-    margin-right:10px;
-}
-
-#totalTrainingRewardLbl {
+    width:150px;
     margin-left: 20px;
 }
 
@@ -116,17 +118,19 @@ h1 {
     margin-left: 20px;
 }
 
-#displayEnvEpLbl {
-    margin-left: 20px;
-}
-
 #displayEnvStepLbl {
     margin-left: 20px;
 }
 
+.legend {
+    display: inline-block;
+    width:70%;
+    text-align: center;
+}
+
 .modelImg {
     width:100%;
-    height:260px;
+    height:235px;
 }
 
 .hyperparameter input[type=range] {
@@ -140,6 +144,19 @@ h1 {
     width:15%;
 }
 
+#epSlider {
+    display: inline-block;
+    float: left;
+    width: 85%;
+}
+
+#epSliderLbl {
+    display: inline-block;
+    float: left;
+    margin-right: 20px;
+    margin-left: 20px;
+}
+
 .hyperparameters label {
     float:left;
     padding-left:20px;
@@ -149,7 +166,7 @@ h1 {
 .modelLeft {
     float:left;
     width:40%;
-    margin-top:20px;
+    margin-top:15px;
 }
 
 .modelRight {
@@ -159,8 +176,6 @@ h1 {
 }
 
 #chartContainer {
-    width: 100%
-    float:left;
     padding-bottom:260px;
 }
 

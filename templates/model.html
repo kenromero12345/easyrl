@@ -38,31 +38,31 @@
 
     <!--top buttons-->
         <div class="topBtn">
-            <button type="button" class="btn btn-success btn-lg btn-block, modelButtons" onclick="train()" id="trainBtn">
+            <button type="button" class="btn btn-success btn-block, modelButtons" onclick="train()" id="trainBtn">
                 Train</button>
-            <button type="button" class="btn btn-warning btn-lg btn-block, modelButtons" onclick="halt()">
+            <button type="button" class="btn btn-warning btn-block, modelButtons" onclick="halt()">
                 Halt</button>
-            <button type="button" class="btn btn-success btn-lg btn-block, modelButtons" onclick="test()" id="testBtn">
+            <button type="button" class="btn btn-success btn-block, modelButtons" onclick="test()" id="testBtn">
                 Test</button>
-            <button type="button" class="btn btn-danger btn-lg btn-block, modelButtons" onclick="reset()">
+            <button type="button" class="btn btn-danger btn-block, modelButtons" onclick="reset()">
                 Reset</button>
-            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
+            <button type="button" class="btn btn-secondary btn-block, modelButtons"
                     onClick="makeLoadVisible(this)" id="loadModBtn">Load Model</button>
             <input class="form-control" type="file" id="uploadModIn"/>
-            <button type="button" class="btn btn-primary btn-lg btn-block, loadBtn" onClick="loadModel(this)"
+            <button type="button" class="btn btn-primary btn-block, loadBtn" onClick="loadModel(this)"
                     id="uploadModBtn">Upload</button>
-            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
+            <button type="button" class="btn btn-secondary btn-block, modelButtons"
                     onClick="makeSaveComponentsVisible(this);">Save Model</button>
-            <input type="text" class="form-control, saveName" placeholder="filename" aria-label="filename"
+            <input type="text" class="form-control, saveName" placeholder="File Name" aria-label="File Name"
                    aria-describedby="basic-addon1">
-            <button type="button" class="btn btn-primary btn-lg btn-block, saveNameBtn"
+            <button type="button" class="btn btn-primary btn-block, saveNameBtn"
                     onClick="saveModel(this)">Download</button>
 
-            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
+            <button type="button" class="btn btn-secondary btn-block, modelButtons"
                     onClick="makeSaveComponentsVisible(this);">Save Results</button>
-            <input type="text" class="form-control, saveName" placeholder="filename" aria-label="filename"
+            <input type="text" class="form-control, saveName" placeholder="File Name" aria-label="File Name"
                    aria-describedby="basic-addon1">
-            <button type="button" class="btn btn-primary btn-lg btn-block, saveNameBtn"
+            <button type="button" class="btn btn-primary btn-block, saveNameBtn"
                     onClick="saveResults(this)">Download</button>
         </div>
 
@@ -89,23 +89,36 @@
 
 <!--            legends and checkbox-->
             <div>
-                <label id="totalTrainingRewardLbl">Total Training Reward: </label>
-                <label id="totalTrainingReward">0</label>
-                <label id="rewardPerEpisodeLbl">Reward/Episode: </label>
-                <label id="rewardPerEpisode">0</label>
-            </div>
-            <div>
-                <label id="displayEnvEpLbl">Display Episode: </label>
-                <label id="displayEnvEp">0</label>
-                <label id="displayEnvStepLbl">Display Step: </label>
-                <label id="displayEnvStep">0</label>
                 <div class="form-check form-switch">
-                  <input class="form-check-input" type="checkbox" id="envSwitch" onchange="displayUpdate(this)">
-                  <label class="form-check-label" for="envSwitch">Display</label>
+                    <input class="form-check-input" type="checkbox" id="envSwitch" onchange="displayUpdate(this)">
+                    <label class="form-check-label" for="envSwitch">Display</label>
+                </div>
+                <div class="legend">
+                    <label id="totalTrainingRewardLbl">Total Training Reward: </label>
+                    <label id="totalTrainingReward">0</label>
+                    <label id="rewardPerEpisodeLbl">Reward/Episode: </label>
+                    <label id="rewardPerEpisode">0</label>
                 </div>
             </div>
+            <div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="ratioSwitch" onchange="ratioUpdate(this)">
+                    <label class="form-check-label" for="ratioSwitch">Aspect Ratio</label>
+                </div>
+                <div class="legend">
+                    <label id="displayEnvEpLbl">Display Episode: </label>
+                    <label id="displayEnvEp">0</label>
+                    <label id="displayEnvStepLbl">Display Step: </label>
+                    <label id="displayEnvStep">0</label>
+                </div>
+            </div>
+            <div>
+                <label id="epSliderLbl" for="epSlider" class="form-label">Episode</label>
+                <input type="range" class="form-range" id="epSlider" min=0 max=1
+                       value=0 step=1 onchange="updateEpisodeSlider(this)" disabled>
+            </div>
 <!--            display-->
-            <img class="modelImg" src="{{ url_for('static',filename='img/tempEnv.png') }}"/>
+            <img class="modelImg" src="{{ url_for('static',filename='img/noImg.png') }}"/>
         </div>
 
         <script>
@@ -132,6 +145,7 @@
             var envSwitch = document.getElementById("envSwitch");
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
             var tempImgUrl = "{{ url_for('tempImage')}}";
+            var epSlider = document.getElementById("epSlider");
         </script>
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"
                 integrity="sha384-SR1sx49pcuLnqZUnnPwx6FCym0wLsk5JZuNx2bPPENzswTNFaQU1RDvt3wT4gWFG"

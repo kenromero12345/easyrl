@@ -38,20 +38,20 @@
 
 <!--top buttons-->
         <div class="topBtn">
-            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
+            <button type="button" class="btn btn-secondary btn-block, modelButtons"
                     onClick="makeLoadVisible(this)">Load Custom Environment</button>
             <input class="form-control" type="file"/>
-            <button type="button" class="btn btn-primary btn-lg btn-block, loadBtn"
+            <button type="button" class="btn btn-primary btn-block, loadBtn"
                     onClick="loadCustEnv(this)">Upload</button>
-            <button type="button" class="btn btn-secondary btn-lg btn-block, modelButtons"
+            <button type="button" class="btn btn-secondary btn-block, modelButtons"
                     onClick="makeLoadVisible(this)">Load Custom Agent</button>
             <input class="form-control" type="file"/>
-            <button type="button" class="btn btn-primary btn-lg btn-block, loadBtn"
+            <button type="button" class="btn btn-primary btn-block, loadBtn"
                     onClick="loadCustAg(this)">Upload</button>
         </div>
 
 <!--Choosing environments-->
-        <h1> Environments</h1>
+        <h3 id="hEnvironment"> Environments</h3>
         <div class="environmentBtns">
             {% for e in envName %}
             <div class="environmentCustImg">
@@ -68,7 +68,7 @@
         </div>
 
 <!--Choosing agents-->
-        <h1 id="h1Agent"> Agents</h1>
+        <h3 id="hAgent"> Agents</h3>
         <div class="agentBtns">
             {% for a in agtName %}
             <div class="agentBtn">

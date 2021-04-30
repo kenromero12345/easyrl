@@ -173,17 +173,16 @@ def runTrain():
 # display an image for this route
 @app.route('/tempImage')
 def tempImage():
-    global noImg, curEp, curStep, curFin
-    if len(tempImages) == 1:
-        curEp = tempImages[1]
-        curStep = tempImages[2]
-        curFin = True
-        return serve_pil_image(tempImages[0][0])  # image stop at the last 1
+    global noImg, curEp, curStep, curFin, curDisplayIndex
     if tempImages:
-        temp = tempImages.pop(0)
+        temp = tempImages[curDisplayIndex]
         curEp = temp[1]
         curStep = temp[2]
-        curFin = False
+        if curDisplayIndex == len(tempImages) - 1:
+            curFin = True
+        else:
+            curFin = False
+            curDisplayIndex += 1
         return serve_pil_image(temp[0])  # image for model
     else:
         curEp = 0
@@ -264,6 +263,72 @@ def halt():
     return jsonify(finished=True)
 
 
+# change display episode
+@app.route('/changeDisplayEpisode')
+def changeDisplayEpisode():
+    global curDisplayIndex
+    ep = int(request.args.get('episode'))
+    if tempImages[-1][1] < ep:
+        episode = binarySearchEpisode(tempImages, 0, len(tempImages), tempImages[-1][1])
+    else:
+        episode = binarySearchEpisode(tempImages, 0, len(tempImages), ep)
+
+    if episode == -1:
+        episode = tempImages[-1][1]
+    curDisplayIndex = episode
+    return jsonify(finished=True)
+
+
+# binary search helper for specifically finding a step
+def binarySearchSteps(arr, low, high, x, ep):
+    # Check base case
+    if high >= low:
+
+        mid = (high + low) // 2
+        # If element is present at the middle itself
+        if arr[mid][2] == x:
+            return mid;
+
+        # If element is smaller than mid, then it can only
+        # be present in left subarray
+        elif (ep == arr[mid][1] and arr[mid][2] > x) or (ep < arr[mid][1]):
+
+            return binarySearchSteps(arr, low, mid - 1, x, ep)
+
+        # Else the element can only be present in right subarray
+        else:
+            return binarySearchSteps(arr, mid + 1, high, x, ep)
+
+    else:
+        # Element is not present in the array
+        return -1
+
+
+# binary search helper for updating the episode
+def binarySearchEpisode(arr, low, high, x):
+    # Check base case
+    if high >= low:
+
+        mid = (high + low) // 2
+
+        # If element is present at the middle itself
+        if arr[mid][1] == x:
+            return binarySearchSteps(arr, low, high, 1, arr[mid][1])
+
+        # If element is smaller than mid, then it can only
+        # be present in left subarray
+        elif arr[mid][1] > x:
+
+            return binarySearchEpisode(arr, low, mid - 1, x)
+
+        # Else the element can only be present in right subarray
+        else:
+            return binarySearchEpisode(arr, mid + 1, high, x)
+
+    else:
+        # Element is not present in the array
+        return -1
+
 # Reset model
 @app.route('/reset')
 def reset():
@@ -278,6 +343,8 @@ def reset():
     msg = queue.Queue()
     # reset model
     mod.reset()
+
+    curDisplayIndex = 0
     return jsonify(finished=True)
 
 
@@ -365,4 +432,5 @@ if __name__ == "__main__":
     curEp = 0
     curStep = 0
     curFin = False
+    curDisplayIndex = 0
     app.run()

@@ -89,11 +89,14 @@ function train() {
         chartReset()
 
         //get parameters
-        var lists = document.querySelectorAll("input[type=range]"); // get parameter components
+        var lists = document.querySelectorAll(".hyperparameter input[type=range]"); // get parameter components
         var params = {}
         for (var i = 0; i < lists.length; i++) {
             params[i] = lists[i].value;
         }
+
+        epSlider.max = lists[0].value;
+        epSlider.min = 1
 
         //send to start train
         $.getJSON($SCRIPT_ROOT + '/startTrain', params, function(data) {
@@ -117,6 +120,8 @@ function testRecursion() {
                 chartReset();
                 trainBtn.disabled = false;
                 updateLoadModDisabled(false);
+                epSlider.max = 0;
+                epSlider.min = 0
             } else { // testing code
                 chartRewardAdd(xVal, data.reward); //add reward to chart
                 xVal++; // episode number +1
@@ -144,6 +149,8 @@ function trainRecursion() {
                 chartReset();
                 testBtn.disabled = false;
                 updateLoadModDisabled(false);
+                epSlider.max = 0;
+                epSlider.min = 0
             } else { //training code
                 //add data to chart
                 chartLossAdd(xVal, data.loss);
@@ -263,6 +270,8 @@ function reset() {
         isReset = true; // reset flag is up
     } else {
         chartReset();
+        isDisplaying = true // helps to reset image
+        displayRecursion(); // reset image
     }
     $.getJSON($SCRIPT_ROOT + '/reset'); // send to reset model
 }
@@ -357,8 +366,10 @@ function displayUpdate(cb) {
     if(cb.checked) {
         isDisplaying = true;
         displayRecursion();
+        epSlider.disabled = false
     } else {
         isDisplaying = false;
+        epSlider.disabled = true
     }
 }
 
@@ -377,9 +388,11 @@ function displayRecursion() {
             $.get($SCRIPT_ROOT + '/tempImageEpStep', function(data) {
                 displayEnvEp.innerHTML = data.episode;
                 displayEnvStep.innerHTML = data.step;
+                epSlider.value = data.episode;
                 if (data.finished) {
                     envSwitch.checked = false;
                     isDisplaying = false;
+                    epSlider.disabled = true;
                 }
             })
             displayRecursion()
@@ -391,4 +404,21 @@ function displayRecursion() {
 window.onload = function () {
     chart = createChart();
     chart.render();
+}
+
+//toggles the display's ratio aspect to on or off
+function ratioUpdate(cb) {
+    if(cb.checked) {
+        htmlImg.style.height = "auto";
+    } else {
+        htmlImg.style.height = "235px";
+    }
+}
+
+//update the episode slider
+function updateEpisodeSlider(sl) {
+    $.get($SCRIPT_ROOT + '/changeDisplayEpisode',
+    {
+        episode: sl.value
+    })
 }
