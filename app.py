@@ -16,6 +16,12 @@ import queue
 from MVC.model import Model
 import sys
 import jsonpickle
+import logging
+
+##no flask msg when running
+# log = logging.getLogger('werkzeug')
+# log.setLevel(logging.ERROR)
+
 
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # do not use cache in this application
@@ -134,7 +140,9 @@ def startTrain():
             temp = request.args.get(str(i))
 
         # run training
-        threading.Thread(target=mod.run_learning, args=[msg, ] + inputParams).start()
+        global curThread
+        curThread = threading.Thread(target=mod.run_learning, args=[msg, ] + inputParams)
+        curThread.start()
         return jsonify(finished=True)
 
 
@@ -179,7 +187,10 @@ def tempImage():
         curEp = temp[1]
         curStep = temp[2]
         if curDisplayIndex == len(tempImages) - 1:
-            curFin = True
+            if curThread.is_alive():
+                curFin = False
+            else:
+                curFin = True
         else:
             curFin = False
             curDisplayIndex += 1
@@ -218,7 +229,9 @@ def startTest():
                 temp = request.args.get(str(i))
 
             # run testing
-            threading.Thread(target=mod.run_testing, args=[msg, ] + inputParams).start()
+            global curThread
+            curThread = threading.Thread(target=mod.run_testing, args=[msg, ] + inputParams)
+            curThread.start()
             return jsonify(finished=True, model=True)
         else:
             return jsonify(finished=False, model=False)  # if agent doesn't exist
@@ -268,14 +281,16 @@ def halt():
 def changeDisplayEpisode():
     global curDisplayIndex
     ep = int(request.args.get('episode'))
-    if tempImages[-1][1] < ep:
-        episode = binarySearchEpisode(tempImages, 0, len(tempImages), tempImages[-1][1])
+    temp = tempImages[-1][1]
+    if temp < ep:
+        episode = binarySearchEpisode(tempImages, 0, len(tempImages), temp)
     else:
         episode = binarySearchEpisode(tempImages, 0, len(tempImages), ep)
 
     if episode == -1:
-        episode = tempImages[-1][1]
-    curDisplayIndex = episode
+        print("error")
+    else:
+        curDisplayIndex = episode
     return jsonify(finished=True)
 
 
@@ -433,4 +448,5 @@ if __name__ == "__main__":
     curStep = 0
     curFin = False
     curDisplayIndex = 0
+    curThread = None;
     app.run()

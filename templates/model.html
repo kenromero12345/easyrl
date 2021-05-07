@@ -8,6 +8,7 @@
         <script type=text/javascript src="{{  url_for('static', filename='js/model.js') }}"></script>
         <script type=text/javascript src="{{  url_for('static', filename='js/combined.js') }}"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css">
         <title>EasyRL</title>
     </head>
     <body>
@@ -38,44 +39,60 @@
 
     <!--top buttons-->
         <div class="topBtn">
-            <button type="button" class="btn btn-success btn-block, modelButtons" onclick="train()" id="trainBtn">
+            <button type="button" class="btn btn-success modelButtons" onclick="train()" id="trainBtn"
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="Train the agent with the current settings">
                 Train</button>
-            <button type="button" class="btn btn-warning btn-block, modelButtons" onclick="halt()">
+            <button type="button" class="btn btn-warning modelButtons" onclick="halt()"
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="Pause the current training">
                 Halt</button>
-            <button type="button" class="btn btn-success btn-block, modelButtons" onclick="test()" id="testBtn">
+            <button type="button" class="btn btn-success modelButtons" onclick="test()" id="testBtn"
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="Test the agent in its current state">
                 Test</button>
-            <button type="button" class="btn btn-danger btn-block, modelButtons" onclick="reset()">
+            <button type="button" class="btn btn-danger modelButtons" onclick="reset()"
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="Reset the current agent and its parameters">
                 Reset</button>
-            <button type="button" class="btn btn-secondary btn-block, modelButtons"
-                    onClick="makeLoadVisible(this)" id="loadModBtn">Load Model</button>
-            <input class="form-control" type="file" id="uploadModIn"/>
-            <button type="button" class="btn btn-primary btn-block, loadBtn" onClick="loadModel(this)"
-                    id="uploadModBtn">Upload</button>
-            <button type="button" class="btn btn-secondary btn-block, modelButtons"
-                    onClick="makeSaveComponentsVisible(this);">Save Model</button>
+            <button type="button" class="btn btn-secondary modelButtons"
+                    onClick="makeLoadVisible(this)" id="loadModBtn"
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="Loading a model">Load Model</button>
+            <input class="form-control" type="file" id="uploadModIn"
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="File uploading input"/>
+            <button type="button" class="btn btn-primary loadBtn" onClick="loadModel(this)"
+                    id="uploadModBtn" data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Confirming the load of the model">Upload</button>
+            <button type="button" class="btn btn-secondary modelButtons"
+                    onClick="makeSaveComponentsVisible(this);" data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Save the model in its current state">Save Model</button>
             <input type="text" class="form-control, saveName" placeholder="File Name" aria-label="File Name"
-                   aria-describedby="basic-addon1">
-            <button type="button" class="btn btn-primary btn-block, saveNameBtn"
-                    onClick="saveModel(this)">Download</button>
+                   aria-describedby="basic-addon1" data-bs-toggle="tooltip" data-bs-placement="top"
+                   title="The file name of the file the model that will be saved">
+            <button type="button" class="btn btn-primary saveNameBtn"
+                    onClick="saveModel(this)" data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Confirm saving the model in its current state">Download</button>
 
-            <button type="button" class="btn btn-secondary btn-block, modelButtons"
-                    onClick="makeSaveComponentsVisible(this);">Save Results</button>
-            <input type="text" class="form-control, saveName" placeholder="File Name" aria-label="File Name"
-                   aria-describedby="basic-addon1">
-            <button type="button" class="btn btn-primary btn-block, saveNameBtn"
-                    onClick="saveResults(this)">Download</button>
+            <button type="button" class="btn btn-secondary modelButtons"
+                    onClick="makeSaveComponentsVisible(this);" data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Save the results of the current session">Save Results</button>
+            <input type="text" class="form-control saveName" placeholder="File Name" aria-label="File Name"
+                   aria-describedby="basic-addon1" data-bs-toggle="tooltip" data-bs-placement="top"
+                   title="The file name of the file where the results will be saved">
+            <button type="button" class="btn btn-primary saveNameBtn"
+                    onClick="saveResults(this)" data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Confirm saving the results of the current session">Download</button>
         </div>
 
     <!--hyperparameters-->
         <div class="modelLeft">
             {% for p in params %}
             <div class="hyperparameters">
-                <label for="{{p.name}} range" class="form-label">{{p.name}}</label>
+                <label for="{{p.name}} range" class="form-label" data-bs-toggle="tooltip" data-bs-placement="top"
+                       title="{{p.toolTipText}}">{{p.name}}</label>
                 <div class="hyperparameter">
                     <input type="range" class="form-range" id="{{p.name}} range" min={{p.min}} max={{p.max}}
-                           value={{p.default}} step={{p.resolution}} onchange="updateSlider(this)">
+                           value={{p.default}} step={{p.resolution}} onchange="updateSlider(this)"
+                           data-bs-toggle="tooltip" data-bs-placement="top" title="{{p.toolTipText}}">
                     <input class="form-control, customInput" type="number" id="{{p.name}} number" value={{p.default}}
-                           onchange="updateInput(this)">
+                           onchange="updateInput(this)" data-bs-toggle="tooltip" data-bs-placement="top"
+                           title="{{p.toolTipText}}">
                 </div>
             </div>
             <br>
@@ -88,39 +105,52 @@
             <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 
 <!--            legends and checkbox-->
-            <div>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="envSwitch" onchange="displayUpdate(this)">
-                    <label class="form-check-label" for="envSwitch">Display</label>
-                </div>
-                <div class="legend">
-                    <label id="totalTrainingRewardLbl">Total Training Reward: </label>
-                    <label id="totalTrainingReward">0</label>
-                    <label id="rewardPerEpisodeLbl">Reward/Episode: </label>
-                    <label id="rewardPerEpisode">0</label>
-                </div>
-            </div>
-            <div>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="ratioSwitch" onchange="ratioUpdate(this)">
-                    <label class="form-check-label" for="ratioSwitch">Aspect Ratio</label>
-                </div>
-                <div class="legend">
-                    <label id="displayEnvEpLbl">Display Episode: </label>
-                    <label id="displayEnvEp">0</label>
-                    <label id="displayEnvStepLbl">Display Step: </label>
-                    <label id="displayEnvStep">0</label>
-                </div>
-            </div>
-            <div>
-                <label id="epSliderLbl" for="epSlider" class="form-label">Episode</label>
-                <input type="range" class="form-range" id="epSlider" min=0 max=1
-                       value=0 step=1 onchange="updateEpisodeSlider(this)" disabled>
+            <div class="legend">
+                <label id="totalTrainingRewardLbl">Total Training Reward: </label>
+                <label id="totalTrainingReward">0</label>
+                <label id="rewardPerEpisodeLbl">Reward/Episode: </label>
+                <label id="rewardPerEpisode">0</label>
             </div>
 <!--            display-->
-            <img class="modelImg" src="{{ url_for('static',filename='img/noImg.png') }}"/>
+            <div class="modelImgParent">
+                <img class="modelImg" src="{{ url_for('static',filename='img/noImg.png') }}"/>
+                <div class="form-check form-switch ratioAspect">
+                    <div id="aspectRatio">
+                        <input class="form-check-input" type="checkbox" id="ratioSwitch" onchange="ratioUpdate(this)"
+                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                title="Toggling the ratio aspect of the displayed environment">
+                        <label class="form-check-label" for="ratioSwitch"
+                                data-bs-toggle="tooltip" data-bs-placement="top" id="aspectRatioLbl"
+                                title="Toggling the ratio aspect of the displayed environment">Aspect Ratio</label>
+                    </div>
+                </div>
+                <div class="legend2">
+                    <div class="legend2Div">
+                        <label id="displayEnvEpLbl">Display Episode: </label>
+                        <label id="displayEnvEp">0</label>
+                        <label id="displayEnvStepLbl">Display Step: </label>
+                        <label id="displayEnvStep">0</label>
+                    </div>
+                </div>
+                <div class="video">
+                    <div class="btnIconDiv">
+                        <button type="button" class="btn btn-success bi-play" onclick="displayUpdate(this)"
+                                id="envSwitch" data-bs-toggle="tooltip" data-bs-placement="top"
+                                title="Toggling on or off the displayed environment"/>
+                    </div>
+                    <input type="range" class="form-range" id="epSlider" min=0 max=1
+                           value=0 step=1 onchange="updateEpisodeSlider(this)"
+                           data-bs-toggle="tooltip" disabled>
+    <!--                data-bs-placement="bottom" title="0"-->
+                </div>
+            </div>
         </div>
-
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"
+                integrity="sha384-SR1sx49pcuLnqZUnnPwx6FCym0wLsk5JZuNx2bPPENzswTNFaQU1RDvt3wT4gWFG"
+                crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js"
+                integrity="sha384-j0CNLUeiqtyaRmlzUHCPZ+Gy5fQu0dQ6eZ/xAww941Ai1SxSY+0EQqNXNE6DZiVc"
+                crossorigin="anonymous"></script>
         <script>
             var dpsLoss = []; // dataPoints
             var dpsReward = [];
@@ -146,12 +176,13 @@
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
             var tempImgUrl = "{{ url_for('tempImage')}}";
             var epSlider = document.getElementById("epSlider");
+
+            //activate popper tooltip
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+
         </script>
-        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"
-                integrity="sha384-SR1sx49pcuLnqZUnnPwx6FCym0wLsk5JZuNx2bPPENzswTNFaQU1RDvt3wT4gWFG"
-                crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js"
-                integrity="sha384-j0CNLUeiqtyaRmlzUHCPZ+Gy5fQu0dQ6eZ/xAww941Ai1SxSY+0EQqNXNE6DZiVc"
-                crossorigin="anonymous"></script>
     </body>
 </html>

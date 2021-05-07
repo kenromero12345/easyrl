@@ -110,8 +110,26 @@ h1 {
 
 .form-switch {
     display: inline-block;
-    width:150px;
-    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.ratioAspect {
+    position:absolute;
+    top: 420px;
+    left: 550px;
+    background-color: white;
+    display: none;
+}
+
+#aspectRatio {
+    padding-right:5px;
+    padding-left:5px;
+}
+
+.epDisplay {
+    display: inline-block;
+    width:70%;
+    text-align: center;
 }
 
 #rewardPerEpisodeLbl {
@@ -124,13 +142,49 @@ h1 {
 
 .legend {
     display: inline-block;
-    width:70%;
+    width:100%;
     text-align: center;
+}
+
+.legend2 {
+    position: absolute;
+    top: 420px;
+    left: 810px;
+    display: none;
+}
+
+.legend2Div {
+    display: inline-block;
+    width:100%;
+    text-align: center;
+    background-color: white;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 
 .modelImg {
     width:100%;
-    height:235px;
+    height:255px;
+}
+
+.modelImg:hover + .ratioAspect {
+    display: inline;
+}
+
+.modelImg:hover + .ratioAspect + .legend2 {
+    display: inline;
+}
+
+.ratioAspect:hover {
+    display: inline;
+}
+
+.ratioAspect:hover + .legend2 {
+    display: inline;
+}
+
+.btnIconDiv {
+    display: inline-block;
 }
 
 .hyperparameter input[type=range] {
@@ -146,8 +200,9 @@ h1 {
 
 #epSlider {
     display: inline-block;
-    float: left;
-    width: 85%;
+    width: 92%;
+    height: 15px;
+    margin-left:5px;
 }
 
 #epSliderLbl {

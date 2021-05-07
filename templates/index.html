@@ -38,16 +38,24 @@
 
 <!--top buttons-->
         <div class="topBtn">
-            <button type="button" class="btn btn-secondary btn-block, modelButtons"
-                    onClick="makeLoadVisible(this)">Load Custom Environment</button>
-            <input class="form-control" type="file"/>
-            <button type="button" class="btn btn-primary btn-block, loadBtn"
-                    onClick="loadCustEnv(this)">Upload</button>
-            <button type="button" class="btn btn-secondary btn-block, modelButtons"
-                    onClick="makeLoadVisible(this)">Load Custom Agent</button>
-            <input class="form-control" type="file"/>
-            <button type="button" class="btn btn-primary btn-block, loadBtn"
-                    onClick="loadCustAg(this)">Upload</button>
+            <button type="button" class="btn btn-secondary modelButtons"
+                    onClick="makeLoadVisible(this)" data-bs-toggle="tooltip" data-bs-placement="top"
+                           title="Loading a custom environment that follows a template (more info on Help page)">
+                Load Custom Environment</button>
+            <input class="form-control" type="file" data-bs-toggle="tooltip" data-bs-placement="top"
+                           title="File upload of the custom environment"/>
+            <button type="button" class="btn btn-primary loadBtn"
+                    onClick="loadCustEnv(this)" data-bs-toggle="tooltip" data-bs-placement="top"
+                           title="Confirmation of the file upload for the custom environment">Upload</button>
+            <button type="button" class="btn btn-secondary modelButtons"
+                    onClick="makeLoadVisible(this)" data-bs-toggle="tooltip" data-bs-placement="top"
+                           title="Loading a custom agent that follows a template (more information on the Help page)">
+                Load Custom Agent</button>
+            <input class="form-control" type="file" data-bs-toggle="tooltip" data-bs-placement="top"
+                           title="File upload of the custom agent"/>
+            <button type="button" class="btn btn-primary loadBtn"
+                    onClick="loadCustAg(this)" data-bs-toggle="tooltip" data-bs-placement="top"
+                           title="Confirmation of the file upload of the custom agent">Upload</button>
         </div>
 
 <!--Choosing environments-->
@@ -81,20 +89,28 @@
 
 <!--submit model button-->
         <div class="submitModel">
-            <button type="button" class="btn btn-primary btn-lg btn-block" onclick="modelSelected()">
+            <button type="button" class="btn btn-primary btn-lg" onclick="modelSelected()"
+                    data-bs-toggle="tooltip" data-bs-placement="top"
+                           title="Confirmation of the selected environment and agent to be trained and tested">
                 Submit button
             </button>
         </div>
-
-        <script>
-            console.log("turnaround time: {{ g.request_time() }}")
-            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-        </script>
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"
                 integrity="sha384-SR1sx49pcuLnqZUnnPwx6FCym0wLsk5JZuNx2bPPENzswTNFaQU1RDvt3wT4gWFG"
                 crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js"
                 integrity="sha384-j0CNLUeiqtyaRmlzUHCPZ+Gy5fQu0dQ6eZ/xAww941Ai1SxSY+0EQqNXNE6DZiVc"
                 crossorigin="anonymous"></script>
+        <script>
+            console.log("turnaround time: {{ g.request_time() }}")
+            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+
+            //activate popper tooltip
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+        </script>
+
     </body>
 </html>

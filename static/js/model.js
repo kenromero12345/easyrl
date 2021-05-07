@@ -362,14 +362,25 @@ function createChart() {
 }
 
 //display change if an image exist
-function displayUpdate(cb) {
-    if(cb.checked) {
+function displayUpdate(b) {
+//    cbLbl = cb.nextElementSibling;
+    if(b.classList.contains('bi-play')) {
+        b.classList.remove('bi-play');
+        b.classList.add('bi-pause');
+        b.classList.remove('btn-success');
+        b.classList.add('btn-warning');
         isDisplaying = true;
         displayRecursion();
         epSlider.disabled = false
+//        cbLbl.innerHTML = "Stop"
     } else {
+        b.classList.add('bi-play');
+        b.classList.remove('bi-pause');
+        b.classList.add('btn-success');
+        b.classList.remove('btn-warning');
         isDisplaying = false;
         epSlider.disabled = true
+//        cbLbl.innerHTML = "Start"
     }
 }
 
@@ -387,10 +398,18 @@ function displayRecursion() {
             htmlImg.src = tempImgUrl;
             $.get($SCRIPT_ROOT + '/tempImageEpStep', function(data) {
                 displayEnvEp.innerHTML = data.episode;
+                epSlider.title = data.episode;
+                epSlider.data = data.episode;
+//                $('#epSlider').attr('data-bs-original-title', data.episode).tooltip('show');
                 displayEnvStep.innerHTML = data.step;
-                epSlider.value = data.episode;
+                if (!epSlider.clicked) {
+                    epSlider.value = data.episode;
+                }
                 if (data.finished) {
-                    envSwitch.checked = false;
+                    envSwitch.classList.add('bi-play');
+                    envSwitch.classList.remove('bi-pause');
+                    envSwitch.classList.add('btn-success');
+                    envSwitch.classList.remove('btn-warning');
                     isDisplaying = false;
                     epSlider.disabled = true;
                 }
@@ -411,7 +430,7 @@ function ratioUpdate(cb) {
     if(cb.checked) {
         htmlImg.style.height = "auto";
     } else {
-        htmlImg.style.height = "235px";
+        htmlImg.style.height = "255px";
     }
 }
 
