@@ -196,8 +196,12 @@ function chartEpsilonAdd(index, epsilon) {
 function saveResults(btn) {
     input = btn.previousElementSibling;
     var results = "";
-    for(var i = 0; i < dpsLoss.length; i++) {
-        results += (i+1) + ", " + dpsLoss[i].y + ", " + dpsReward[i].y + ", " + dpsEpsilon[i].y + "\n";
+    for(var i = 0; i < dpsReward.length; i++) {
+        if (dpsLoss[i]) {
+            results += (i+1) + ", " + dpsLoss[i].y + ", " + dpsReward[i].y + ", " + dpsEpsilon[i].y + "\n";
+        } else {
+            results += (i+1) + " ,_ , " + dpsReward[i].y + " ,_\n";
+        }
     }
     if (results == "") { // if results is empty
         window.alert("No results to be saved");
@@ -281,6 +285,9 @@ function reset() {
         chartReset();
         isDisplaying = true // helps to reset image
         displayRecursion(); // reset image
+        trainBtn.disabled = false; // enable train
+        updateLoadModDisabled(false); // enable loading model feature
+        testBtn.disabled = false // enable test
     }
     $.getJSON($SCRIPT_ROOT + '/reset'); // send to reset model
 }

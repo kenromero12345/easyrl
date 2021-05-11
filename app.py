@@ -142,6 +142,8 @@ def startTrain():
         # run training
         global curThread
         curThread = threading.Thread(target=mod.run_learning, args=[msg, ] + inputParams)
+        global curDisplayIndex
+        curDisplayIndex = 0
         curThread.start()
         return jsonify(finished=True)
 
@@ -231,6 +233,8 @@ def startTest():
             # run testing
             global curThread
             curThread = threading.Thread(target=mod.run_testing, args=[msg, ] + inputParams)
+            global curDisplayIndex
+            curDisplayIndex = 0
             curThread.start()
             return jsonify(finished=True, model=True)
         else:
@@ -358,7 +362,7 @@ def reset():
     msg = queue.Queue()
     # reset model
     mod.reset()
-
+    global curDisplayIndex
     curDisplayIndex = 0
     return jsonify(finished=True)
 
