@@ -199,8 +199,11 @@ function saveResults(btn) {
     for(var i = 0; i < dpsLoss.length; i++) {
         results += (i+1) + ", " + dpsLoss[i].y + ", " + dpsReward[i].y + ", " + dpsEpsilon[i].y + "\n";
     }
-
-    download(results, input.value, "txt") // download to user's system
+    if (results == "") {
+        window.alert("No results to be saved");
+    } else {
+        download(results, input.value, "txt") // download to user's system
+    }
 
     // hide components
     input.style.display = "none";
