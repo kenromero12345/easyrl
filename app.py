@@ -37,6 +37,12 @@ def indexPage():
                            allowedAgents=allowedAgents)
 
 
+# login page of the application
+@app.route('/login')
+def loginPage():
+    return render_template('login.html')
+
+
 # When clicking the loading custom environment button
 @app.route('/custEnv')
 def custEnv():
@@ -104,19 +110,23 @@ def modelPage(environment, agent):
 @app.route('/saveModel')
 def saveModel():
     # encode the model
-    temp = jsonpickle.encode(mod.agent)
+    temp = jsonpickle.encode((mod.agent.displayName, mod.agent.memsave()))
     return jsonify(agent=temp)
 
 
 # loading model
-@app.route('/loadModel')
+@app.route('/loadModel', methods=['POST'])
 def loadModel():
-    temp = jsonpickle.decode(request.args.get('agent'))  # decode model
+    try:
+        name, mem = jsonpickle.decode(request.form.get('agent'))  # decode model
 
-    # validate the decoded model
-    if mod.agent_class == type(temp):
-        mod.agent = temp
-        return jsonify(success=True)
+        # validate the decoded model
+        if mod.agent_class.displayName == name:
+            mod.isLoaded = True
+            mod.memload = mem
+            return jsonify(success=True)
+    except ValueError:
+        return jsonify(success=False)
     return jsonify(success=False)
 
 
@@ -193,6 +203,7 @@ def tempImage():
                 curFin = False
             else:
                 curFin = True
+                curDisplayIndex = 0
         else:
             curFin = False
             curDisplayIndex += 1
@@ -216,7 +227,7 @@ def startTest():
     if mod.isRunning:  # if model is running
         return jsonify(finished=False)
     else:
-        if mod.agent:
+        if mod.agent or mod.isLoaded:
             # reset hyperparameters and image queue
             global inputParams, tempImages
             inputParams = []

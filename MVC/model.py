@@ -17,6 +17,8 @@ class Model:
         self.agent = None
         self.loadFilename = None
         self.cloudBridge = None
+        self.isLoaded = False
+        self.memload = None
 
     def createBridge(self, jobID, secretKey, accessKey, sessionToken):
         print("Bridge Created")
@@ -38,7 +40,11 @@ class Model:
         if not self.environment:
             self.environment = self.environment_class()
 
-        if self.loadFilename:
+        if self.isLoaded:
+            self.agent = self.agent_class(self.environment.state_size, self.environment.action_size, *model_args)
+            self.agent.memload(self.memload)
+            self.isLoaded = False
+        elif self.loadFilename:
             self.agent = self.agent_class(self.environment.state_size, self.environment.action_size, *model_args)
             self.agent.load(self.loadFilename)
             self.loadFilename = None
@@ -72,7 +78,8 @@ class Model:
 
                     loss = self.agent.remember(old_state, action, reward, self.environment.state, self.environment.done)
 
-                    frame = self.environment.render()
+                    if self.environment:
+                        frame = self.environment.render()
 
                     if (self.cloudBridge is not None):
                         self.cloudBridge.submitStep(frame, epsilon, reward, loss)
@@ -128,7 +135,8 @@ class Model:
                             policy_trajectory.append(TransitionFrame(old_state, action, reward, self.environment.state, self.environment.done))
                             
                             # Render and save the step.
-                            frame = self.environment.render()
+                            if self.environment:
+                                frame = self.environment.render()
 
                             if (self.cloudBridge is not None):
                                 self.cloudBridge.submitStep(frame, 0, reward, 0)
@@ -163,7 +171,8 @@ class Model:
                         episode_trajectory.append(TransitionFrame(old_state, action, reward, self.environment.state, self.environment.done))
                         
                         # Render and save the step.
-                        frame = self.environment.render()
+                        if self.environment:
+                            frame = self.environment.render()
 
                         if (self.cloudBridge is not None):
                             self.cloudBridge.submitStep(frame, 0, reward, 0)
@@ -214,7 +223,11 @@ class Model:
         if not self.environment:
             self.environment = self.environment_class()
 
-        if self.loadFilename:
+        if self.isLoaded:
+            self.agent = self.agent_class(self.environment.state_size, self.environment.action_size, *model_args)
+            self.agent.memload(self.memload)
+            self.isLoaded = False
+        elif self.loadFilename:
             self.agent = self.agent_class(self.environment.state_size, self.environment.action_size, *model_args)
             self.agent.load(self.loadFilename)
             self.loadFilename = None
@@ -245,9 +258,11 @@ class Model:
                         reward = self.environment.step(action)
 
                         if isinstance(self.agent, drqn.DRQN):
-                            self.agent.addToMemory(old_state, action, reward, self.environment.state, episode, self.environment.done)
+                            self.agent.addToMemory(old_state, action, reward, self.environment.state, self.environment.done)
+                            # self.agent.addToMemory(old_state, action, reward, self.environment.state, episode, self.environment.done)
 
-                        frame = self.environment.render()
+                        if self.environment:
+                            frame = self.environment.render()
                     
                         if (self.cloudBridge is not None):
                             self.cloudBridge.submitStep(frame, 0, reward, 0)
@@ -287,7 +302,8 @@ class Model:
                         reward = self.environment.step(action)
                         
                         # Render the step
-                        frame = self.environment.render()
+                        if self.environment:
+                            frame = self.environment.render()
                     
                         if (self.cloudBridge is not None):
                             self.cloudBridge.submitStep(frame, 0, reward, 0)
@@ -327,6 +343,7 @@ class Model:
     def reset(self):
         self.environment = None
         self.agent = None
+        self.memload = None
 
     def save(self, filename):
         if self.agent:

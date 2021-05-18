@@ -58,11 +58,15 @@ function download(data, filename, type) {
 function test() {
     if (!isRunning) {
         //get parameters
-        var lists = document.querySelectorAll("input[type=range]"); // get parameter components
+        var lists = document.querySelectorAll(".hyperparameter input[type=range]"); // get parameter components
         var params = {}
         for (var i = 0; i < lists.length; i++) {
             params[i] = lists[i].value;
         }
+
+        epSlider.max = lists[0].value;
+        epSlider.min = 1;
+        epSlider.value = 1;
 
         // send to start test
         $.getJSON($SCRIPT_ROOT + '/startTest', params, function(data) {
@@ -97,6 +101,7 @@ function train() {
 
         epSlider.max = lists[0].value;
         epSlider.min = 1
+        epSlider.value = 1;
 
         //send to start train
         $.getJSON($SCRIPT_ROOT + '/startTrain', params, function(data) {
@@ -114,23 +119,14 @@ function testRecursion() {
             trainBtn.disabled = false;
             updateLoadModDisabled(false);
         } else {
-            if (isReset) { //reset is clicked while testing
-                isRunning = false;
-                isReset = false;
-                chartReset();
-                trainBtn.disabled = false;
-                updateLoadModDisabled(false);
-                epSlider.max = 0;
-                epSlider.min = 0
-            } else { // testing code
-                chartRewardAdd(xVal, data.reward); //add reward to chart
-                xVal++; // episode number +1
-                chart.render();
-                testRecursion();
-                totalTrainingRewardVal += data.reward;
-                totalTrainingReward.innerHTML = totalTrainingRewardVal.toFixed(2);
-                rewardPerEpisode.innerHTML = (totalTrainingRewardVal/xVal).toFixed(2);
-            }
+            // testing code
+            chartRewardAdd(xVal, data.reward); //add reward to chart
+            xVal++; // episode number +1
+            chart.render();
+            testRecursion();
+            totalTrainingRewardVal += data.reward;
+            totalTrainingReward.innerHTML = totalTrainingRewardVal.toFixed(2);
+            rewardPerEpisode.innerHTML = (totalTrainingRewardVal/xVal).toFixed(2);
         }
     });
 }
@@ -143,27 +139,18 @@ function trainRecursion() {
             testBtn.disabled = false;
             updateLoadModDisabled(false);
         } else {
-            if (isReset) { //reset is clicked while training
-                isRunning = false;
-                isReset = false;
-                chartReset();
-                testBtn.disabled = false;
-                updateLoadModDisabled(false);
-                epSlider.max = 0;
-                epSlider.min = 0
-            } else { //training code
-                //add data to chart
-                chartLossAdd(xVal, data.loss);
-                chartRewardAdd(xVal, data.reward);
-                chartEpsilonAdd(xVal, data.epsilon);
+            //training code
+            //add data to chart
+            chartLossAdd(xVal, data.loss);
+            chartRewardAdd(xVal, data.reward);
+            chartEpsilonAdd(xVal, data.epsilon);
 
-                xVal++;// episode number +1
-                chart.render();
-                trainRecursion();
-                totalTrainingRewardVal += data.reward;
-                totalTrainingReward.innerHTML = totalTrainingRewardVal.toFixed(2);
-                rewardPerEpisode.innerHTML = (totalTrainingRewardVal/xVal).toFixed(2);
-            }
+            xVal++;// episode number +1
+            chart.render();
+            trainRecursion();
+            totalTrainingRewardVal += data.reward;
+            totalTrainingReward.innerHTML = totalTrainingRewardVal.toFixed(2);
+            rewardPerEpisode.innerHTML = (totalTrainingRewardVal/xVal).toFixed(2);
         }
     });
 }
@@ -247,7 +234,7 @@ function loadModel(btn) {
     var temp;
     fr.onload=function(){
         temp = fr.result;
-        $.getJSON($SCRIPT_ROOT + '/loadModel', { //send to load model
+        $.post($SCRIPT_ROOT + '/loadModel', { //send to load model
             agent: temp
         }, function(data) {
             if (data.success) { // data is loaded successfully
@@ -260,7 +247,6 @@ function loadModel(btn) {
             } else {
                 window.alert("Incorrect Model! Loading Unsuccessful");
             }
-
         });
     }
     fr.readAsText(input.files[0]); //read file
@@ -278,18 +264,17 @@ function toggleDataSeries(e) {
 
 //reset the graph, display, and the model
 function reset() {
-    if (isRunning) {
+    $.getJSON($SCRIPT_ROOT + '/reset', function() {
         isRunning = false;
-        isReset = true; // reset flag is up
-    } else {
         chartReset();
         isDisplaying = true // helps to reset image
         displayRecursion(); // reset image
         trainBtn.disabled = false; // enable train
         updateLoadModDisabled(false); // enable loading model feature
         testBtn.disabled = false // enable test
-    }
-    $.getJSON($SCRIPT_ROOT + '/reset'); // send to reset model
+        isReset = true;
+        epSlider.value = 1
+    }); // send to reset model
 }
 
 //halt training or testing
@@ -387,7 +372,7 @@ function displayUpdate(b) {
         b.classList.add('btn-warning');
         isDisplaying = true;
         displayRecursion();
-        epSlider.disabled = false
+        epSlider.disabled = false;
 //        cbLbl.innerHTML = "Stop"
     } else {
         b.classList.add('bi-play');
@@ -395,7 +380,7 @@ function displayUpdate(b) {
         b.classList.add('btn-success');
         b.classList.remove('btn-warning');
         isDisplaying = false;
-        epSlider.disabled = true
+        epSlider.disabled = true;
 //        cbLbl.innerHTML = "Start"
     }
 }
@@ -418,9 +403,11 @@ function displayRecursion() {
                 epSlider.data = data.episode;
 //                $('#epSlider').attr('data-bs-original-title', data.episode).tooltip('show');
                 displayEnvStep.innerHTML = data.step;
-                if (!epSlider.clicked) {
-                    epSlider.value = data.episode;
-                }
+//                console.log($("#epSlider:hover").length)
+//                if ($("#epSlider:hover").length != 0) {
+//                    epSlider.value = data.episode;
+//                }
+                epSlider.value = data.episode;
                 if (data.finished) {
                     envSwitch.classList.add('bi-play');
                     envSwitch.classList.remove('bi-pause');
@@ -429,8 +416,18 @@ function displayRecursion() {
                     isDisplaying = false;
                     epSlider.disabled = true;
                 }
+                if (isReset) {
+                    htmlImg.src = noImgUrl;
+                    isReset = false;
+                    isDisplaying = false;
+                    displayEnvStep.innerHTML = 0;
+                    displayEnvEp.innerHTML = 0;
+                    epSlider.title = 0;
+                    epSlider.data = 0;
+                } else {
+                    displayRecursion()
+                }
             })
-            displayRecursion()
         })
     }
 }
