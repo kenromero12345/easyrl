@@ -12,9 +12,10 @@ window.onload = function () {
 function modelSelected() {
     var environments = document.getElementsByName('optionsEnv'); // get environments
     var agents = document.getElementsByName('options'); // get agents
+    var instances = document.getElementsByName('optionsInst'); // get instances
     var agent;
     var environment;
-
+    var instance;
     //get chosen agent
     for(i = 0; i < agents.length; i++) {
         if(agents[i].checked) {
@@ -29,10 +30,25 @@ function modelSelected() {
         }
     }
 
-    if (agent && environment) { // if agent and environment exists
-        location.replace("/model/" + environment + "/" + agent); // change location to the new model
+    //get chosen instance
+    for(i = 0; i < instances.length; i++) {
+        if(instances[i].checked) {
+            instance = instances[i].id;
+        }
+    }
+
+    if (isLogin) {
+        if (agent && environment && instance) { // if agent and environment exists
+            location.replace("/model/" + environment + "/" + agent + "/" + instance); // change location to the new model
+        } else {
+            window.alert("You are missing an agent and/or an environment and/or an instance!"); // error
+        }
     } else {
-        window.alert("You are missing an agent and/or an environment!"); // error
+        if (agent && environment) { // if agent and environment exists
+            location.replace("/model/" + environment + "/" + agent); // change location to the new model
+        } else {
+            window.alert("You are missing an agent and/or an environment!"); // error
+        }
     }
 }
 

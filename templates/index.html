@@ -14,23 +14,28 @@
 <!--    Navigation bar-->
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container-fluid">
-                <a class="navbar-brand" href="/index">EasyRL</a>
-                <button
-                        class="navbar-toggler"
-                        type="button"
-                        data-mdb-toggle="collapse"
-                        data-mdb-target="#navbarNavAltMarkup"
-                        aria-controls="navbarNavAltMarkup"
-                        aria-expanded="false"
-                        aria-label="Toggle navigation"
-                >
-                    <i class="fas fa-bars"></i>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <a class="navbar-brand" href="/index">EasyRL</a>
+                <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="/index">Model</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/about">About</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/help">Help</a>
+                        </li>
+                    </ul>
                     <div class="navbar-nav">
-                        <a class="nav-link active" aria-current="page" href="/index">Model</a>
-                        <a class="nav-link" href="/about">About</a>
-                        <a class="nav-link" href="/help">Help</a>
+                        {% if isLogin %}
+                            <a class="nav-link logout" onClick="logout()">Logout</a>
+                        {% else %}
+                            <a class="nav-link" href="/login">Login</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -61,31 +66,66 @@
 <!--Choosing environments-->
         <h3 id="hEnvironment"> Environments</h3>
         <div class="environmentBtns">
-            {% for e in envName %}
-            <div class="environmentCustImg">
-                <input type="radio" class="btn-check" name="optionsEnv" id="{{e}}" autocomplete="off"
-                       onclick="envUpdate(this,{{allowedEnvs}}, {{allowedAgents}})">
-                <label class="btn btn-outline-secondary" for="{{e}}">
-                    <div>
-                        <img class="indexImg" src="{{ url_for('static', filename='img/' + e + '.jpg') }}"/>
+            {% if isLogin %}
+                {% for e2 in envName %}
+                    <div class="environmentCustImg">
+                        <input type="radio" class="btn-check" name="optionsEnv" id="{{e2.name}}" autocomplete="off">
+                        <label class="btn btn-outline-secondary" for="{{e2.name}}">
+                            <div>
+                                <img class="indexImg" src="{{ url_for('static', filename='img/' + e2.file + '.jpg') }}"/>
+                            </div>
+                            {{e2.name}}
+                        </label>
                     </div>
-                    {{e}}
-                </label>
-            </div>
-            {% endfor %}
+                {% endfor %}
+            {% else %}
+                {% for e in envName %}
+                    <div class="environmentCustImg">
+                        <input type="radio" class="btn-check" name="optionsEnv" id="{{e}}" autocomplete="off"
+                               onclick="envUpdate(this,{{allowedEnvs}}, {{allowedAgents}})">
+                        <label class="btn btn-outline-secondary" for="{{e}}">
+                            <div>
+                                <img class="indexImg" src="{{ url_for('static', filename='img/' + e + '.jpg') }}"/>
+                            </div>
+                            {{e}}
+                        </label>
+                    </div>
+                {% endfor %}
+            {% endif %}
         </div>
 
 <!--Choosing agents-->
         <h3 id="hAgent"> Agents</h3>
         <div class="agentBtns">
-            {% for a in agtName %}
-            <div class="agentBtn">
-                <input type="radio" class="btn-check" name="options" id="{{a}}" autocomplete="off"
-                       onclick="agUpdate(this,{{allowedEnvs}}, {{allowedAgents}})">
-                <label class="btn btn-outline-secondary" for="{{a}}">{{a}}</label>
-            </div>
-            {% endfor %}
+            {% if isLogin %}
+                {% for a2 in agtName %}
+                    <div class="agentBtn">
+                        <input type="radio" class="btn-check" name="options" id="{{a2.name}}" autocomplete="off">
+                        <label class="btn btn-outline-secondary" for="{{a2.name}}">{{a2.name}}</label>
+                    </div>
+                {% endfor %}
+            {% else %}
+                {% for a in agtName %}
+                    <div class="agentBtn">
+                        <input type="radio" class="btn-check" name="options" id="{{a}}" autocomplete="off"
+                               onclick="agUpdate(this,{{allowedEnvs}}, {{allowedAgents}})">
+                        <label class="btn btn-outline-secondary" for="{{a}}">{{a}}</label>
+                    </div>
+                {% endfor %}
+            {% endif %}
         </div>
+
+        {% if isLogin %}
+            <h3 id="hInstances"> Instances</h3>
+            <div class="agentBtns">
+                {% for i in instances %}
+                    <div class="agentBtn">
+                        <input type="radio" class="btn-check" name="optionsInst" id="{{i}}" autocomplete="off">
+                        <label class="btn btn-outline-secondary" for="{{i}}">{{i}}</label>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
 
 <!--submit model button-->
         <div class="submitModel">
@@ -110,6 +150,13 @@
             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             })
+
+            {% if isLogin %}
+                var isLogin = true;
+            {% else %}
+                var isLogin = false;
+            {% endif %}
+
         </script>
 
     </body>

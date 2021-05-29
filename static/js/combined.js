@@ -18,3 +18,10 @@ function hideUploadDownload() {
         comps[i].style.display = "none";
     }
 }
+
+//logging out the aws account
+function logout() {
+    $.get($SCRIPT_ROOT + '/logout', function(data) {
+        location.replace("/index");
+    })
+}

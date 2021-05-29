@@ -85,7 +85,7 @@ label.btn {
 
 .submitModel {
     text-align:center;
-    margin-top:50px;
+    margin-top:30px;
 }
 
 h1 {
@@ -93,13 +93,13 @@ h1 {
 }
 
 #hEnvironment {
-    margin-top: 20px;
+    margin-top: 15px;
     margin-left: 20px;
 }
 
 #hAgent {
     margin-left: 20px;
-    margin-top: 40px;
+    margin-top: 20px;
 }
 
 .h1Start {
@@ -259,4 +259,41 @@ h1 {
 p {
     padding-left:25px;
     padding-right:25px;
+}
+
+/*login*/
+
+.credentials {
+    margin-top: 10px;
+}
+
+.awsnote {
+    text-align:center;
+    font-size: 12px;
+    margin-top: 10px
+}
+
+.cardCred {
+    margin-left:20%;
+    margin-right:20%;
+    width:60%;
+    padding:0px;
+}
+
+.cardItems {
+    margin-top:10px;
+}
+
+.loginBtn {
+    float: right;
+    width: 15%;
+}
+
+.logout {
+    cursor: pointer;
+}
+
+#hInstances {
+    margin-left: 20px;
+    margin-top: 20px;
 }

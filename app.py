@@ -1,6 +1,10 @@
 import io
+import json
+import os
 from types import ModuleType
 import PIL
+import boto3
+import botocore
 from PIL.Image import Image
 from flask import Flask, render_template, g, request, jsonify, send_file
 import time
@@ -16,6 +20,9 @@ import queue
 from MVC.model import Model
 import sys
 import jsonpickle
+from utilities import get_aws_lambda, \
+    invoke_aws_lambda_func, is_valid_aws_credential, generate_jobID
+import apps
 import logging
 
 ##no flask msg when running
@@ -33,14 +40,145 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # do not use cache in this applicat
 @app.route('/')
 @app.route('/index')
 def indexPage():
-    return render_template('index.html', envName=envName, agtName=agtName, allowedEnvs=allowedEnvs,
-                           allowedAgents=allowedAgents)
+    if isLogin:
+
+        info = lambda_info(accessKey,
+                           secretKey,
+                           securityToken,
+                           jobID, {})
+        info = json.loads(info)
+        # temp = [i.get('name') for i in info.get('environments')]
+        for i in range(len(info.get('environments'))):
+            name = info.get('environments')[i].get('name')
+            name = name.lower().replace(" ", "_")
+            info.get('environments')[i].update({"file": name})
+        return render_template('index.html', envName=info.get('environments'), agtName=info.get('agents'),
+                               allowedEnvs=None, allowedAgents=None, isLogin=isLogin, instances=instances)
+    else:
+        return render_template('index.html', envName=envName, agtName=agtName, allowedEnvs=allowedEnvs,
+                               allowedAgents=allowedAgents, isLogin=isLogin, instances=instances)
+
+
+def lambda_info(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
+    lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
+    data = {
+        "accessKey": aws_access_key,
+        "secretKey": aws_secret_key,
+        "sessionToken": aws_security_token,
+        "jobID": job_id,
+        "task": apps.TASK_INFO,
+        "arguments": arguments,
+    }
+    response = invoke_aws_lambda_func(lambdas, str(data).replace('\'', '"'))
+    payload = response['Payload'].read()
+    print("{}lambda_info_job{}={}".format(apps.FORMAT_GREEN, apps.FORMAT_RESET, payload))
+    if len(payload) != 0:
+        return "{}".format(payload)[2:-1]
+    else:
+        return ""
 
 
 # login page of the application
 @app.route('/login')
 def loginPage():
     return render_template('login.html')
+
+
+# logging in the AWS account
+@app.route('/loggingIn')
+def loggingIn():
+    global isLogin, accessKey, secretKey, securityToken
+    accessKey = request.args.get('accessKey')
+    secretKey = request.args.get('secretKey')
+    securityToken = request.args.get('securityToken')
+    is_valid_aws_credential(accessKey, secretKey, securityToken)
+    isLogin = is_valid_aws_credential(accessKey, secretKey, securityToken)
+    if isLogin:
+        return jsonify(success=True)
+    else:
+        return jsonify(success=False)
+
+
+# logging out the AWS account
+@app.route('/logout')
+def logout():
+    global isLogin
+    isLogin = False
+
+    # TODO: replace request.post.get
+    lambda_terminate_instance(
+        accessKey,
+        secretKey,
+        securityToken,
+        jobID,
+        {
+            "instanceType": get_safe_value(str, request.POST.get("instanceType"), "c4.xlarge")
+            , "instanceID": get_safe_value(str, request.POST.get("instanceID"), "")
+            , "killTime": get_safe_value(int, request.POST.get("killTime"), 600)
+            , "environment": get_safe_value(int, request.POST.get("environment"), 1)
+            , "continuousTraining": get_safe_value(str, request.POST.get("continuousTraining"), "False")
+            , "agent": get_safe_value(int, request.POST.get("agent"), 1)
+            , "episodes": get_safe_value(int, request.POST.get("episodes"), 20)
+            , "steps": get_safe_value(int, request.POST.get("steps"), 50)
+            , "gamma": get_safe_value(float, request.POST.get("gamma"), 0.97)
+            , "minEpsilon": get_safe_value(float, request.POST.get("minEpsilon"), 0.01)
+            , "maxEpsilon": get_safe_value(float, request.POST.get("maxEpsilon"), 0.99)
+            , "decayRate": get_safe_value(float, request.POST.get("decayRate"), 0.01)
+            , "batchSize": get_safe_value(int, request.POST.get("batchSize"), 32)
+            , "memorySize": get_safe_value(int, request.POST.get("memorySize"), 1000)
+            , "targetInterval": get_safe_value(int, request.POST.get("targetInterval"), 10)
+            , "alpha": get_safe_value(float, request.POST.get("alpha"), 0.9)
+            , "historyLength": get_safe_value(int, request.POST.get("historyLength"), 10)
+
+            , "delta": get_safe_value(int, request.POST.get("delta"), 0.001)
+            , "sigma": get_safe_value(int, request.POST.get("sigma"), 0.5)
+            , "population": get_safe_value(int, request.POST.get("population"), 10)
+            , "elite": get_safe_value(int, request.POST.get("elite"), 0.2)
+
+            , "tau": get_safe_value(int, request.POST.get("tau"), 0.97)
+            , "temperature": get_safe_value(int, request.POST.get("temperature"), 0.97)
+
+            , "learningRate": get_safe_value(int, request.POST.get("learningRate"), 0.001)
+            , "policyLearnRate": get_safe_value(int, request.POST.get("policyLearnRate"), 0.001)
+            , "valueLearnRate": get_safe_value(int, request.POST.get("valueLearnRate"), 0.001)
+            , "horizon": get_safe_value(int, request.POST.get("horizon"), 50)
+            , "epochSize": get_safe_value(int, request.POST.get("epochSize"), 500)
+            , "ppoEpsilon": get_safe_value(int, request.POST.get("ppoEpsilon"), 0.2)
+            , "ppoLambda": get_safe_value(int, request.POST.get("ppoLambda"), 0.95)
+            , "valueLearnRatePlus": get_safe_value(int, request.POST.get("valueLearnRatePlus"), 0.001)
+        }
+    )
+
+    return jsonify(success=True)
+
+
+def lambda_terminate_instance(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
+    # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/lambda.html
+    lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
+    data = {
+        "accessKey": aws_access_key,
+        "secretKey": aws_secret_key,
+        "sessionToken": aws_security_token,
+        "jobID": job_id,
+        "task": apps.TASK_TERMINAL_INSTANCE,
+        "arguments": arguments,
+    }
+    response = invoke_aws_lambda_func(lambdas, str(data).replace('\'', '"'))
+    print("{}lambda_terminate_instance{}={}".format(apps.FORMAT_RED, apps.FORMAT_RESET, response['Payload'].read()))
+    if response['StatusCode'] == 200:
+        streambody = response['Payload'].read().decode()
+        print("{}stream_body{}={}".format(apps.FORMAT_BLUE, apps.FORMAT_RESET, streambody))
+        return True
+    return False
+
+
+def get_safe_value(convert_function, input_value, default_value):
+    try:
+        return convert_function(input_value)
+    except ValueError as _:
+        return default_value
+    except Exception as _:
+        return default_value
 
 
 # When clicking the loading custom environment button
@@ -92,6 +230,39 @@ def modelPage(environment, agent):
         if environment == curEnv.displayName:
             mod.environment_class = curEnv
             break
+
+    mod.reset()  # reset model
+
+    # set parameters to be sent
+    params = [ag.Agent.Parameter('Number of Episodes', 1, 655360, 1, 1000, True, True,
+                                 "The number of episodes to run the model on"),
+              ag.Agent.Parameter('Max Size', 1, 655360, 1, 200, True, True,
+                                 "The max number of timesteps permitted in an episode")]
+    for param in mod.agent_class.parameters:
+        params.append(param)
+
+    return render_template('model.html', params=params)
+
+
+# displaying model page
+# sending parameters info
+@app.route('/model/<environment>/<agent>/<instance>')
+def modelPageAWS(environment, agent, instance):
+    # set agent class
+    for curAgent in agents:
+        if agent == curAgent.displayName:
+            mod.agent_class = curAgent
+            break
+
+    # set environment class
+    for curEnv in environments:
+        if environment == curEnv.displayName:
+            mod.environment_class = curEnv
+            break
+
+    # TODO: get instance
+    for curIns in instances:
+        if instance == 
 
     mod.reset()  # reset model
 
@@ -161,7 +332,7 @@ def startTrain():
 # running training
 @app.route('/runTrain')
 def runTrain():
-    temp = msg.get(block=True)  #receive message
+    temp = msg.get(block=True)  # receive message
 
     # train is finished
     if temp.data == Model.Message.TRAIN_FINISHED:
@@ -255,7 +426,7 @@ def startTest():
 # running testing
 @app.route('/runTest')
 def runTest():
-    temp = msg.get(block=True) #receive message
+    temp = msg.get(block=True)  # receive message
 
     # test is finished
     if temp.data == Model.Message.TEST_FINISHED:
@@ -359,6 +530,7 @@ def binarySearchEpisode(arr, low, high, x):
         # Element is not present in the array
         return -1
 
+
 # Reset model
 @app.route('/reset')
 def reset():
@@ -395,6 +567,19 @@ def helpPage():
 def before_request():
     g.request_start_time = time.time()
     g.request_time = lambda: "%.5fs" % (time.time() - g.request_start_time)
+
+
+# validate AWS credentials
+def is_valid_aws_credential(aws_access_key_id, aws_secret_access_key, aws_session_token=None):
+    try:
+        boto3.client('sts',
+                     aws_access_key_id=aws_access_key_id,
+                     aws_secret_access_key=aws_secret_access_key,
+                     aws_session_token=aws_session_token,
+                     ).get_caller_identity()
+        return True
+    except botocore.exceptions.ClientError:
+        return False
 
 
 # running application
@@ -463,5 +648,13 @@ if __name__ == "__main__":
     curStep = 0
     curFin = False
     curDisplayIndex = 0
-    curThread = None;
+    curThread = None
+    isLogin = False
+    accessKey = None
+    secretKey = None
+    securityToken = None
+    jobID = generate_jobID()
+    instances = ["c4.large ($0.10/hr)", "c4.xlarge ($0.19/hr)", "c4.2xlarge ($0.39/hr)", "c4.4xlarge ($0.79/hr)",
+                 "c4.8xlarge ($1.59/hr)", "g4dn.xlarge ($0.52/hr)", "g4dn.2xlarge ($0.75/hr)",
+                 "g4dn.4xlarge ($1.20/hr)", "g4dn.8xlarge ($2.17/hr)"]
     app.run()

@@ -13,23 +13,28 @@
     <!--    Navigation bar-->
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container-fluid">
-                <a class="navbar-brand" href="/index">EasyRL</a>
-                <button
-                        class="navbar-toggler"
-                        type="button"
-                        data-mdb-toggle="collapse"
-                        data-mdb-target="#navbarNavAltMarkup"
-                        aria-controls="navbarNavAltMarkup"
-                        aria-expanded="false"
-                        aria-label="Toggle navigation"
-                >
-                    <i class="fas fa-bars"></i>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <a class="navbar-brand" href="/index">EasyRL</a>
+                <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/index">Model</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="/about">About</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/help">Help</a>
+                        </li>
+                    </ul>
                     <div class="navbar-nav">
-                        <a class="nav-link" href="/index">Model</a>
-                        <a class="nav-link active" aria-current="page" href="/#">About</a>
-                        <a class="nav-link" href="/help">Help</a>
+                        {% if isLogin %}
+                            <a class="nav-link logout" onClick="logout()">Logout</a>
+                        {% else %}
+                            <a class="nav-link" href="/login">Login</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
