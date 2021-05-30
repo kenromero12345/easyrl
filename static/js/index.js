@@ -39,7 +39,7 @@ function modelSelected() {
 
     if (isLogin) {
         if (agent && environment && instance) { // if agent and environment exists
-            location.replace("/model/" + environment + "/" + agent + "/" + instance); // change location to the new model
+            location.replace("/model/" + environment + "/" + agent + "/" + instance.split(' ')[0]); // change location to the new model
         } else {
             window.alert("You are missing an agent and/or an environment and/or an instance!"); // error
         }

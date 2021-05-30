@@ -52,6 +52,12 @@ def indexPage():
             name = info.get('environments')[i].get('name')
             name = name.lower().replace(" ", "_")
             info.get('environments')[i].update({"file": name})
+        global awsAg, awsEnv, awsEnvMap, awsAgMap, awsParam
+        awsEnv = info.get('environments')
+        awsAg = info.get('agents')
+        awsEnvMap = info.get('environmentsMap')
+        awsAgMap = info.get('agentsMap')
+        awsParam = info.get('parameters')
         return render_template('index.html', envName=info.get('environments'), agtName=info.get('agents'),
                                allowedEnvs=None, allowedAgents=None, isLogin=isLogin, instances=instances)
     else:
@@ -241,40 +247,39 @@ def modelPage(environment, agent):
     for param in mod.agent_class.parameters:
         params.append(param)
 
-    return render_template('model.html', params=params)
+    return render_template('model.html', params=params, isLogin=isLogin)
 
 
 # displaying model page
 # sending parameters info
 @app.route('/model/<environment>/<agent>/<instance>')
 def modelPageAWS(environment, agent, instance):
-    # set agent class
-    for curAgent in agents:
-        if agent == curAgent.displayName:
-            mod.agent_class = curAgent
+    global awsCurAg, awsCurEnv, awsInst
+
+    # set agent
+    for i in awsAg:
+        if i.get('name') == agent:
+            awsCurAg = i
             break
 
-    # set environment class
-    for curEnv in environments:
-        if environment == curEnv.displayName:
-            mod.environment_class = curEnv
+    # set environment
+    for i in awsEnv:
+        if i.get('name') == environment:
+            awsCurEnv = i
             break
 
-    # TODO: get instance
-    for curIns in instances:
-        if instance == 
+    # set instance
+    awsInst = instance
 
-    mod.reset()  # reset model
-
-    # set parameters to be sent
-    params = [ag.Agent.Parameter('Number of Episodes', 1, 655360, 1, 1000, True, True,
-                                 "The number of episodes to run the model on"),
-              ag.Agent.Parameter('Max Size', 1, 655360, 1, 200, True, True,
-                                 "The max number of timesteps permitted in an episode")]
-    for param in mod.agent_class.parameters:
-        params.append(param)
-
-    return render_template('model.html', params=params)
+    # set parameters
+    tempParams = []
+    for i in awsCurAg.get('parameters'):
+        for j in awsParam:
+            if j == i:
+                awsParam.get(j)['id'] = j
+                tempParams.append(awsParam.get(j))
+    print(tempParams)
+    return render_template('model.html', params=tempParams, isLogin=isLogin)
 
 
 # saving model
@@ -649,6 +654,8 @@ if __name__ == "__main__":
     curFin = False
     curDisplayIndex = 0
     curThread = None
+
+
     isLogin = False
     accessKey = None
     secretKey = None
@@ -657,4 +664,10 @@ if __name__ == "__main__":
     instances = ["c4.large ($0.10/hr)", "c4.xlarge ($0.19/hr)", "c4.2xlarge ($0.39/hr)", "c4.4xlarge ($0.79/hr)",
                  "c4.8xlarge ($1.59/hr)", "g4dn.xlarge ($0.52/hr)", "g4dn.2xlarge ($0.75/hr)",
                  "g4dn.4xlarge ($1.20/hr)", "g4dn.8xlarge ($2.17/hr)"]
+    awsEnv = None
+    awsAg = None
+    awsCurEnv = 0
+    awsCurAg = 0
+    awsInst = None
+    awsEnvMap, awsAgMap, awsParam = None, None, None
     app.run()

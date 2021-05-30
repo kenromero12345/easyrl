@@ -87,21 +87,39 @@
 
     <!--hyperparameters-->
         <div class="modelLeft">
-            {% for p in params %}
-            <div class="hyperparameters">
-                <label for="{{p.name}} range" class="form-label" data-bs-toggle="tooltip" data-bs-placement="top"
-                       title="{{p.toolTipText}}">{{p.name}}</label>
-                <div class="hyperparameter">
-                    <input type="range" class="form-range" id="{{p.name}} range" min={{p.min}} max={{p.max}}
-                           value={{p.default}} step={{p.resolution}} onchange="updateSlider(this)"
-                           data-bs-toggle="tooltip" data-bs-placement="top" title="{{p.toolTipText}}">
-                    <input class="form-control, customInput" type="number" id="{{p.name}} number" value={{p.default}}
-                           onchange="updateInput(this)" data-bs-toggle="tooltip" data-bs-placement="top"
-                           title="{{p.toolTipText}}">
-                </div>
-            </div>
-            <br>
-            {% endfor %}
+            {% if isLogin %}
+                {% for p2 in params %}
+                    <div class="hyperparameters">
+                        <label for="{{p2.id}} range" class="form-label" data-bs-toggle="tooltip" data-bs-placement="top"
+                               title="{{p2.description}}">{{p2.id}}</label>
+                        <div class="hyperparameter">
+                            <input type="range" class="form-range" id="{{p2.id}} range" min={{p2.min}} max={{p2.max}}
+                                   value={{p2.default}} onchange="updateSlider(this)"
+                                   data-bs-toggle="tooltip" data-bs-placement="top" title="{{p2.description}}">
+                            <input class="form-control, customInput" type="number" id="{{p2.id}} number" value={{p2.default}}
+                                   onchange="updateInput(this)" data-bs-toggle="tooltip" data-bs-placement="top"
+                                   title="{{p2.description}}">
+                        </div>
+                    </div>
+                    <br>
+                {% endfor %}
+            {% else %}
+                {% for p in params %}
+                    <div class="hyperparameters">
+                        <label for="{{p.name}} range" class="form-label" data-bs-toggle="tooltip" data-bs-placement="top"
+                               title="{{p.toolTipText}}">{{p.name}}</label>
+                        <div class="hyperparameter">
+                            <input type="range" class="form-range" id="{{p.name}} range" min={{p.min}} max={{p.max}}
+                                   value={{p.default}} step={{p.resolution}} onchange="updateSlider(this)"
+                                   data-bs-toggle="tooltip" data-bs-placement="top" title="{{p.toolTipText}}">
+                            <input class="form-control, customInput" type="number" id="{{p.name}} number" value={{p.default}}
+                                   onchange="updateInput(this)" data-bs-toggle="tooltip" data-bs-placement="top"
+                                   title="{{p.toolTipText}}">
+                        </div>
+                    </div>
+                    <br>
+                {% endfor %}
+            {% endif %}
         </div>
 
         <div class="modelRight">
@@ -188,6 +206,12 @@
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             })
 
+            //aws
+            {% if isLogin %}
+                var isLogin = true;
+            {% else %}
+                var isLogin = false;
+            {% endif %}
         </script>
     </body>
 </html>
