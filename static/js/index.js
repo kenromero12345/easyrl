@@ -39,6 +39,9 @@ function modelSelected() {
 
     if (isLogin) {
         if (agent && environment && instance) { // if agent and environment exists
+//            loader.style.display = "inline-block";
+//            console.log(loader)
+//            setTimeout(doPoll, 1000);
             location.replace("/model/" + environment + "/" + agent + "/" + instance.split(' ')[0]); // change location to the new model
         } else {
             window.alert("You are missing an agent and/or an environment and/or an instance!"); // error
@@ -125,4 +128,84 @@ function loadCustEnv(btn) {
 // loading custom agent
 function loadCustAg(btn) {
     loading(btn, '/custAg')
+}
+
+//function doPoll (){
+//    try {
+//        $.getJSON('/poll', function (result) {
+//            try {
+//                var state = result["instanceState"]
+//                var stateText = result["instanceStateText"]
+//                if (stateText == "Idle") {
+//                    location.replace("/model/" + environment + "/" + agent + "/" + instance.split(' ')[0]); // change location to the new model
+//                }
+//                setTimeout(doPoll, 1000);
+//            } catch (e) {
+//                setTimeout(doPoll, 1000);
+//            }
+//        });
+//    } catch (e) {
+//        setTimeout(doPoll, 5000);
+//    }
+//}
+
+function awsAgUpdate (inp, envMap, agMap, env, ag) {
+//    curEnvs = allowedEnvs[inp.id] // get environment allowed to pair
+//    if (curEnvs.length != 0){ // if there are allowed environments
+//        envsDiv = document.querySelectorAll(".environmentCustImg") //get all environments
+//        for (var i=0; i<envsDiv.length; i++) { // iterate through all environments
+//            envsIn = envsDiv[i].firstElementChild; // get the input element of the environment
+//            if (curEnvs.includes(envsIn.id) || !envsIn.id in allowedAgents) { // if environment is not allowed
+//                envsIn.disabled = false; // disable the environment
+//            } else {
+//                envsIn.disabled = true; // enable the environment
+//            }
+//        }
+//    }
+    var envsDiv = document.querySelectorAll(".environmentCustImg") //get all environments
+    var supportedEnvs = null
+    for (var i = 1; i <= ag.length; i++) {
+//        console.log(envMap[i.toString()]["name"] + " " + inp.id)
+        if (agMap[i.toString()]["name"] == inp.id) {
+            supportedEnvs = agMap[i]["supportedEnvs"];
+            break;
+        }
+    }
+//    console.log(supportedEnvs)
+    for (var j = 1; j <= env.length; j++) {
+        var envsIn = envsDiv[j-1].firstElementChild; // get the input element of the agent
+//        console.log(envIn.id)
+//
+//        console.log(envMap[j.toString()]["supportedEnvs"])
+        if (supportedEnvs.includes(envMap[j.toString()]["type"])) {
+            envsIn.disabled = false; // disable the agent
+        } else {
+            envsIn.disabled = true;
+        }
+    }
+}
+
+function awsEnvUpdate (inp, envMap, agMap, env, ag) {
+//    console.log(envMap)
+//    console.log(agMap)
+    var agentsDiv = document.querySelectorAll(".agentBtn");
+    var type = null;
+    for (var i = 1; i <= env.length; i++) {
+        if (envMap[i.toString()]["name"] == inp.id) {
+            type = envMap[i]["type"];
+            break;
+        }
+    }
+//    console.log(type)
+    for (var j = 1; j <= ag.length; j++) {
+        var agentsIn = agentsDiv[j-1].firstElementChild; // get the input element of the agent
+//        console.log(agentsIn.id)
+//
+//        console.log(agMap[j.toString()]["supportedEnvs"])
+        if (agMap[j.toString()]["supportedEnvs"].includes(type)) {
+            agentsIn.disabled = false; // disable the agent
+        } else {
+            agentsIn.disabled = true;
+        }
+    }
 }

@@ -42,6 +42,7 @@
         </nav>
 
 <!--top buttons-->
+        {% if isLogin == False %}
         <div class="topBtn">
             <button type="button" class="btn btn-secondary modelButtons"
                     onClick="makeLoadVisible(this)" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -62,14 +63,16 @@
                     onClick="loadCustAg(this)" data-bs-toggle="tooltip" data-bs-placement="top"
                            title="Confirmation of the file upload of the custom agent">Upload</button>
         </div>
+        {% endif %}
 
 <!--Choosing environments-->
         <h3 id="hEnvironment"> Environments</h3>
         <div class="environmentBtns">
             {% if isLogin %}
-                {% for e2 in envName %}
+                {% for e2 in env %}
                     <div class="environmentCustImg">
-                        <input type="radio" class="btn-check" name="optionsEnv" id="{{e2.name}}" autocomplete="off">
+                        <input type="radio" class="btn-check" name="optionsEnv" id="{{e2.name}}" autocomplete="off"
+                                onclick="awsEnvUpdate(this,{{envMap}}, {{agMap}}, {{env}}, {{agt}})">
                         <label class="btn btn-outline-secondary" for="{{e2.name}}">
                             <div>
                                 <img class="indexImg" src="{{ url_for('static', filename='img/' + e2.file + '.jpg') }}"/>
@@ -98,9 +101,10 @@
         <h3 id="hAgent"> Agents</h3>
         <div class="agentBtns">
             {% if isLogin %}
-                {% for a2 in agtName %}
+                {% for a2 in agt %}
                     <div class="agentBtn">
-                        <input type="radio" class="btn-check" name="options" id="{{a2.name}}" autocomplete="off">
+                        <input type="radio" class="btn-check" name="options" id="{{a2.name}}" autocomplete="off"
+                                onclick="awsAgUpdate(this,{{envMap}}, {{agMap}}, {{env}}, {{agt}})">
                         <label class="btn btn-outline-secondary" for="{{a2.name}}">{{a2.name}}</label>
                     </div>
                 {% endfor %}
@@ -156,7 +160,6 @@
             {% else %}
                 var isLogin = false;
             {% endif %}
-
         </script>
 
     </body>

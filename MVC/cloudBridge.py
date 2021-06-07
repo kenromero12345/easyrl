@@ -134,7 +134,7 @@ class CloudBridge:
                 if (len(self.gifURLs)) > 10:
                     self.gifURLs.pop(0)
 
-            payload =  {
+            payload = {
                 "episodesCompleted": int(episode),
                 "totalReward": round(self.trueTotalReward),
                 "avgReward": round(self.trueTotalReward / self.trainingEpisodes),

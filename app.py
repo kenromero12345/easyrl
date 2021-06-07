@@ -58,8 +58,8 @@ def indexPage():
         awsEnvMap = info.get('environmentsMap')
         awsAgMap = info.get('agentsMap')
         awsParam = info.get('parameters')
-        return render_template('index.html', envName=info.get('environments'), agtName=info.get('agents'),
-                               allowedEnvs=None, allowedAgents=None, isLogin=isLogin, instances=instances)
+        return render_template('index.html', env=info.get('environments'), agt=info.get('agents'),
+                               envMap=awsEnvMap, agMap=awsAgMap, isLogin=isLogin, instances=instances)
     else:
         return render_template('index.html', envName=envName, agtName=agtName, allowedEnvs=allowedEnvs,
                                allowedAgents=allowedAgents, isLogin=isLogin, instances=instances)
@@ -77,7 +77,7 @@ def lambda_info(aws_access_key, aws_secret_key, aws_security_token, job_id, argu
     }
     response = invoke_aws_lambda_func(lambdas, str(data).replace('\'', '"'))
     payload = response['Payload'].read()
-    print("{}lambda_info_job{}={}".format(apps.FORMAT_GREEN, apps.FORMAT_RESET, payload))
+    # print("{}lambda_info_job{}={}".format(apps.FORMAT_GREEN, apps.FORMAT_RESET, payload))
     if len(payload) != 0:
         return "{}".format(payload)[2:-1]
     else:
@@ -100,6 +100,7 @@ def loggingIn():
     is_valid_aws_credential(accessKey, secretKey, securityToken)
     isLogin = is_valid_aws_credential(accessKey, secretKey, securityToken)
     if isLogin:
+        # mod.createBridge(jobID, secretKey, accessKey, securityToken)
         return jsonify(success=True)
     else:
         return jsonify(success=False)
@@ -118,40 +119,6 @@ def logout():
         securityToken,
         jobID,
         {
-            "instanceType": get_safe_value(str, request.POST.get("instanceType"), "c4.xlarge")
-            , "instanceID": get_safe_value(str, request.POST.get("instanceID"), "")
-            , "killTime": get_safe_value(int, request.POST.get("killTime"), 600)
-            , "environment": get_safe_value(int, request.POST.get("environment"), 1)
-            , "continuousTraining": get_safe_value(str, request.POST.get("continuousTraining"), "False")
-            , "agent": get_safe_value(int, request.POST.get("agent"), 1)
-            , "episodes": get_safe_value(int, request.POST.get("episodes"), 20)
-            , "steps": get_safe_value(int, request.POST.get("steps"), 50)
-            , "gamma": get_safe_value(float, request.POST.get("gamma"), 0.97)
-            , "minEpsilon": get_safe_value(float, request.POST.get("minEpsilon"), 0.01)
-            , "maxEpsilon": get_safe_value(float, request.POST.get("maxEpsilon"), 0.99)
-            , "decayRate": get_safe_value(float, request.POST.get("decayRate"), 0.01)
-            , "batchSize": get_safe_value(int, request.POST.get("batchSize"), 32)
-            , "memorySize": get_safe_value(int, request.POST.get("memorySize"), 1000)
-            , "targetInterval": get_safe_value(int, request.POST.get("targetInterval"), 10)
-            , "alpha": get_safe_value(float, request.POST.get("alpha"), 0.9)
-            , "historyLength": get_safe_value(int, request.POST.get("historyLength"), 10)
-
-            , "delta": get_safe_value(int, request.POST.get("delta"), 0.001)
-            , "sigma": get_safe_value(int, request.POST.get("sigma"), 0.5)
-            , "population": get_safe_value(int, request.POST.get("population"), 10)
-            , "elite": get_safe_value(int, request.POST.get("elite"), 0.2)
-
-            , "tau": get_safe_value(int, request.POST.get("tau"), 0.97)
-            , "temperature": get_safe_value(int, request.POST.get("temperature"), 0.97)
-
-            , "learningRate": get_safe_value(int, request.POST.get("learningRate"), 0.001)
-            , "policyLearnRate": get_safe_value(int, request.POST.get("policyLearnRate"), 0.001)
-            , "valueLearnRate": get_safe_value(int, request.POST.get("valueLearnRate"), 0.001)
-            , "horizon": get_safe_value(int, request.POST.get("horizon"), 50)
-            , "epochSize": get_safe_value(int, request.POST.get("epochSize"), 500)
-            , "ppoEpsilon": get_safe_value(int, request.POST.get("ppoEpsilon"), 0.2)
-            , "ppoLambda": get_safe_value(int, request.POST.get("ppoLambda"), 0.95)
-            , "valueLearnRatePlus": get_safe_value(int, request.POST.get("valueLearnRatePlus"), 0.001)
         }
     )
 
@@ -170,10 +137,10 @@ def lambda_terminate_instance(aws_access_key, aws_secret_key, aws_security_token
         "arguments": arguments,
     }
     response = invoke_aws_lambda_func(lambdas, str(data).replace('\'', '"'))
-    print("{}lambda_terminate_instance{}={}".format(apps.FORMAT_RED, apps.FORMAT_RESET, response['Payload'].read()))
+    # print("{}lambda_terminate_instance{}={}".format(apps.FORMAT_RED, apps.FORMAT_RESET, response['Payload'].read()))
     if response['StatusCode'] == 200:
         streambody = response['Payload'].read().decode()
-        print("{}stream_body{}={}".format(apps.FORMAT_BLUE, apps.FORMAT_RESET, streambody))
+        # print("{}stream_body{}={}".format(apps.FORMAT_BLUE, apps.FORMAT_RESET, streambody))
         return True
     return False
 
@@ -278,7 +245,7 @@ def modelPageAWS(environment, agent, instance):
             if j == i:
                 awsParam.get(j)['id'] = j
                 tempParams.append(awsParam.get(j))
-    print(tempParams)
+    # print(tempParams)
     return render_template('model.html', params=tempParams, isLogin=isLogin)
 
 
@@ -309,11 +276,8 @@ def loadModel():
 # starting training
 @app.route('/startTrain')
 def startTrain():
-    if mod.isRunning:  # if model is running
-        return jsonify(finished=False)
-    else:
-        # reset hyperparameters and image queue
-        global inputParams, tempImages
+    global inputParams, tempImages
+    if isLogin:
         inputParams = []
         tempImages = []
 
@@ -325,14 +289,236 @@ def startTrain():
             i += 1
             temp = request.args.get(str(i))
 
-        # run training
-        global curThread
-        curThread = threading.Thread(target=mod.run_learning, args=[msg, ] + inputParams)
-        global curDisplayIndex
-        curDisplayIndex = 0
-        curThread.start()
-        return jsonify(finished=True)
+        payload = setUpPayload()
 
+        return lambda_run_job(
+            accessKey,
+            secretKey,
+            securityToken,
+            jobID,
+            payload
+            # {
+            #     "instanceType": get_safe_value(str, awsInst, "c4.xlarge")
+            #     , "instanceID": get_safe_value(str, awsSession, "")
+            #     , "killTime": get_safe_value(int, awsKillTime, 600)
+            #     , "environment": get_safe_value(int, awsCurEnv.get('index'), 1)
+            #     , "continuousTraining": get_safe_value(str, awsContTrain, "False")
+            #     , "agent": get_safe_value(int, awsCurAg.get('index'), 1)
+            #     , "episodes": get_safe_value(int, awsEpisode, 20)
+            #     , "steps": get_safe_value(int, awsSteps, 50)
+            #     , "gamma": get_safe_value(float, awsGamma, 0.97)
+            #     , "minEpsilon": get_safe_value(float, awsMinEpsilon, 0.01)
+            #     , "maxEpsilon": get_safe_value(float, awsMaxEpsilon, 0.99)
+            #     , "decayRate": get_safe_value(float, awsDecayRate, 0.01)
+            #     , "batchSize": get_safe_value(int, awsBatchSize, 32)
+            #     , "memorySize": get_safe_value(int, awsMemorySize, 1000)
+            #     , "targetInterval": get_safe_value(int, awsTargetInterval, 10)
+            #     , "alpha": get_safe_value(float, awsAlpha, 0.9)
+            #     , "historyLength": get_safe_value(int, awsHistoryLength, 10)
+            #
+            #     , "delta": get_safe_value(int, awsDelta, 0.001)
+            #     , "sigma": get_safe_value(int, awsSigma, 0.5)
+            #     , "population": get_safe_value(int, awsPopulation, 10)
+            #     , "elite": get_safe_value(int, awsElite, 0.2)
+            #
+            #     , "tau": get_safe_value(int, awsTau, 0.97)
+            #     , "temperature": get_safe_value(int, awsTemperature, 0.97)
+            #
+            #     , "learningRate": get_safe_value(int, awsLearningRate, 0.001)
+            #     , "policyLearnRate": get_safe_value(int, awsPolicyLearnRate, 0.001)
+            #     , "valueLearnRate": get_safe_value(int, awsValueLearnRate, 0.001)
+            #     , "horizon": get_safe_value(int, awsHorizon, 50)
+            #     , "epochSize": get_safe_value(int, awsEpochSize, 500)
+            #     , "ppoEpsilon": get_safe_value(int, awsPpoEpsilon, 0.2)
+            #     , "ppoLambda": get_safe_value(int, awsPpoLambda, 0.95)
+            #     , "valueLearnRatePlus": get_safe_value(int, awsValueLearnRatePlus, 0.001)
+            # }
+        )
+    else:
+        if mod.isRunning:  # if model is running
+            return jsonify(finished=False)
+        else:
+            # reset hyperparameters and image queue
+            inputParams = []
+            tempImages = []
+
+            # set hyperparameters
+            temp = request.args.get('0')
+            i = 0
+            while temp is not None:
+                inputParams.append(float(temp))
+                i += 1
+                temp = request.args.get(str(i))
+
+            # run training
+            global curThread
+            curThread = threading.Thread(target=mod.run_learning, args=[msg, ] + inputParams)
+            global curDisplayIndex
+            curDisplayIndex = 0
+            curThread.start()
+            return jsonify(finished=True)
+
+
+#
+def setUpPayload():
+    payload = {
+        "instanceType": get_safe_value(str, awsInst, "c4.xlarge")
+        , "killTime": get_safe_value(int, awsKillTime, 600)
+        , "environment": get_safe_value(int, awsCurEnv.get('index'), 1)
+        , "agent": get_safe_value(int, awsCurAg.get('index'), 1)
+        , "continuousTraining": get_safe_value(int, awsContTrain, 0)
+        # , "episodes": 20
+        # , "steps": 50
+        # , "gamma": 0.97
+        # , "minEpsilon":  0.01
+        # , "maxEpsilon":  0.99
+        # , "decayRate":  0.01
+        # , "batchSize": 32
+        # , "memorySize":  1000
+        # , "targetInterval":  10
+        # , "alpha": 0.9
+        # , "historyLength": 10
+        #
+        # , "delta":  0.001
+        # , "sigma": 0.5
+        # , "population":  10
+        # , "elite": 0.2
+        #
+        # , "tau": 0.97
+        # , "temperature": 0.97
+        #
+        # , "learningRate": 0.001
+        # , "policyLearnRate": 0.001
+        # , "valueLearnRate": 0.001
+        # , "horizon": 50
+        # , "epochSize": 500
+        # , "ppoEpsilon": 0.2
+        # , "ppoLambda": 0.95
+        # , "valueLearnRatePlus": 0.001
+    }
+
+    for j in range(len(awsCurAg.get('parameters'))):
+        if ("episodes" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(int, inputParams[j], 20)
+        elif ("steps" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(int, inputParams[j], 50)
+        elif ("gamma" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.97)
+        elif ("minEpsilon" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.01)
+        elif ("maxEpsilon" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.99)
+        elif ("decayRate" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.01)
+        elif ("batchSize" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(int, inputParams[j], 32)
+        elif ("memorySize" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(int, inputParams[j], 1000)
+        elif ("targetInterval" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(int, inputParams[j], 10)
+        elif ("historyLength" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(int, inputParams[j], 10)
+        elif ("alpha" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.9)
+        elif ("delta" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.001) #TODO: change from int
+        elif ("sigma" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.5) #TODO: change from int
+        elif ("population" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(int, inputParams[j], 10)
+        elif ("elite" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.2)#TODO: change from int
+        elif ("tau" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.97)#TODO: change from int
+        elif ("temperature" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.97)#TODO: change from int
+        elif ("learningRate" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.001)#TODO: change from int
+        elif ("policyLearnRate" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.001)#TODO: change from int
+        elif ("valueLearnRate" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.001)#TODO: change from int
+        elif ("horizon" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 50) # TODO: right? float?
+        elif ("epochSize" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 500) # TODO: right? float?
+        elif ("ppoEpsilon" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.2)#TODO: change from int
+        elif ("ppoLambda" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.95)#TODO: change from int
+        elif ("valueLearnRatePlus" == awsCurAg.get('parameters')[j]):
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.001)#TODO: change from int
+    return payload
+
+
+def lambda_run_job(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
+    lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
+    data = {
+        "accessKey": aws_access_key,
+        "secretKey": aws_secret_key,
+        "sessionToken": aws_security_token,
+        "jobID": job_id,
+        "task": apps.TASK_RUN_JOB,
+        "arguments": arguments,
+    }
+    response = invoke_aws_lambda_func(lambdas, str(data).replace('\'','"'))
+    payload = response['Payload'].read()
+    # print("{}lambda_run_job{}={}".format(apps.FORMAT_RED, apps.FORMAT_RESET, payload))
+    if len(payload) != 0:
+        return "{}".format(payload)[2:-1]
+    else:
+        return ""
+
+
+# poll
+@app.route('/poll')
+def poll():
+    global inputParams, tempImages
+    inputParams = []
+    tempImages = []
+
+    # set hyperparameters
+    temp = request.args.get('0')
+    i = 0
+    while temp is not None:
+        inputParams.append(float(temp))
+        i += 1
+        temp = request.args.get(str(i))
+
+    try:
+        temp = lambda_poll(
+            accessKey,
+            secretKey,
+            securityToken,
+            jobID,
+            setUpPayload()
+        )
+        print(temp)
+        return temp
+    except:
+        return {
+            "instanceState": "booting",
+            "instanceStateText": "Loading..."
+        }
+
+def lambda_poll(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
+    lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
+    data = {
+        "accessKey": aws_access_key,
+        "secretKey": aws_secret_key,
+        "sessionToken": aws_security_token,
+        "jobID": job_id,
+        "task": apps.TASK_POLL,
+        "arguments": arguments,
+    }
+    # print(str(data).replace('\'', '"'))
+    response = invoke_aws_lambda_func(lambdas, str(data).replace('\'', '"'))
+    payload = response['Payload'].read()
+    # print("{}lambda_poll{}={}".format(apps.FORMAT_RED, apps.FORMAT_RESET, payload))
+    if len(payload) != 0:
+        return "{}".format(payload)[2:-1]
+    else:
+        return ""
 
 # running training
 @app.route('/runTrain')
@@ -400,32 +586,75 @@ def tempImageEpStep():
 # starting testing
 @app.route('/startTest')
 def startTest():
-    if mod.isRunning:  # if model is running
-        return jsonify(finished=False)
+    global inputParams, tempImages
+    if isLogin:
+        inputParams = []
+        tempImages = []
+
+        # set hyperparameters
+        temp = request.args.get('0')
+        i = 0
+        while temp is not None:
+            inputParams.append(float(temp))
+            i += 1
+            temp = request.args.get(str(i))
+
+        payload = setUpPayload()
+
+        return lambda_test_job(
+            accessKey,
+            secretKey,
+            securityToken,
+            jobID,
+            payload
+        )
     else:
-        if mod.agent or mod.isLoaded:
-            # reset hyperparameters and image queue
-            global inputParams, tempImages
-            inputParams = []
-            tempImages = []
-
-            # set hyperparameters
-            temp = request.args.get('0')
-            i = 0
-            while temp is not None:
-                inputParams.append(float(temp))
-                i += 1
-                temp = request.args.get(str(i))
-
-            # run testing
-            global curThread
-            curThread = threading.Thread(target=mod.run_testing, args=[msg, ] + inputParams)
-            global curDisplayIndex
-            curDisplayIndex = 0
-            curThread.start()
-            return jsonify(finished=True, model=True)
+        if mod.isRunning:  # if model is running
+            return jsonify(finished=False)
         else:
-            return jsonify(finished=False, model=False)  # if agent doesn't exist
+            if mod.agent or mod.isLoaded:
+                # reset hyperparameters and image queue
+
+                inputParams = []
+                tempImages = []
+
+                # set hyperparameters
+                temp = request.args.get('0')
+                i = 0
+                while temp is not None:
+                    inputParams.append(float(temp))
+                    i += 1
+                    temp = request.args.get(str(i))
+
+                # run testing
+                global curThread
+                curThread = threading.Thread(target=mod.run_testing, args=[msg, ] + inputParams)
+                global curDisplayIndex
+                curDisplayIndex = 0
+                curThread.start()
+                return jsonify(finished=True, model=True)
+            else:
+                return jsonify(finished=False, model=False)  # if agent doesn't exist
+
+
+#
+def lambda_test_job(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
+    lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
+    data = {
+        "accessKey": aws_access_key,
+        "secretKey": aws_secret_key,
+        "sessionToken": aws_security_token,
+        "jobID": job_id,
+        "task": apps.TASK_RUN_TEST,
+        "arguments": arguments,
+    }
+    response = invoke_aws_lambda_func(lambdas, str(data).replace('\'','"'))
+    payload = response['Payload'].read()
+    print("{}lambda_test_job{}={}".format(apps.FORMAT_RED, apps.FORMAT_RESET, payload))
+    if len(payload) != 0:
+        return "{}".format(payload)[2:-1]
+    else:
+        return ""
 
 
 # running testing
@@ -666,8 +895,14 @@ if __name__ == "__main__":
                  "g4dn.4xlarge ($1.20/hr)", "g4dn.8xlarge ($2.17/hr)"]
     awsEnv = None
     awsAg = None
-    awsCurEnv = 0
-    awsCurAg = 0
+    awsCurEnv = None
+    awsCurAg = None
     awsInst = None
     awsEnvMap, awsAgMap, awsParam = None, None, None
+    awsSession = 1
+    awsKillTime = 31536000
+    awsContTrain = 0
     app.run()
+
+# class AWSLambdaKeys:
+#

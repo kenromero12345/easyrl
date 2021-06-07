@@ -94,7 +94,7 @@
                                title="{{p2.description}}">{{p2.id}}</label>
                         <div class="hyperparameter">
                             <input type="range" class="form-range" id="{{p2.id}} range" min={{p2.min}} max={{p2.max}}
-                                   value={{p2.default}} onchange="updateSlider(this)"
+                                   value={{p2.default}} step="{{p2.stepSize}}" onchange="updateSlider(this)"
                                    data-bs-toggle="tooltip" data-bs-placement="top" title="{{p2.description}}">
                             <input class="form-control, customInput" type="number" id="{{p2.id}} number" value={{p2.default}}
                                    onchange="updateInput(this)" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -151,10 +151,13 @@
                     <div class="legend2Div">
                         <label id="displayEnvEpLbl">Display Episode: </label>
                         <label id="displayEnvEp">0</label>
+                        {% if isLogin == False %}
                         <label id="displayEnvStepLbl">Display Step: </label>
                         <label id="displayEnvStep">0</label>
+                        {% endif %}
                     </div>
                 </div>
+                {% if isLogin == False %}
                 <div class="video">
                     <div class="btnIconDiv">
                         <button type="button" class="btn btn-success bi-play" onclick="displayUpdate(this)"
@@ -166,8 +169,16 @@
                            data-bs-toggle="tooltip" disabled>
     <!--                data-bs-placement="bottom" title="0"-->
                 </div>
+                {% endif %}
             </div>
         </div>
+        {% if isLogin %}
+        <div id="loaderWrapper">
+            <div id="loader" class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        {% endif %}
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"
                 integrity="sha384-SR1sx49pcuLnqZUnnPwx6FCym0wLsk5JZuNx2bPPENzswTNFaQU1RDvt3wT4gWFG"
                 crossorigin="anonymous"></script>
@@ -212,6 +223,16 @@
             {% else %}
                 var isLogin = false;
             {% endif %}
+            if (isLogin) {
+                document.getElementsByClassName("legend2Div")[0].style.left = "870px"
+                setTimeout(function () {
+                  doPoll();
+                }, 1000)
+            }
+
+            var loaderWrapper = document.getElementById("loaderWrapper")
+
+
         </script>
     </body>
 </html>

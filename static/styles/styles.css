@@ -297,3 +297,20 @@ p {
     margin-left: 20px;
     margin-top: 20px;
 }
+
+#loader {
+    width: 100px;
+    height: 100px;
+}
+
+#loaderWrapper {
+    background-color: white;
+    position: absolute;
+    height: 90%;
+    width: 100%;
+    top:60px;
+    left:0;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}

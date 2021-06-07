@@ -677,6 +677,7 @@ def yourFunction(request, context):
                             ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(
                                 "cat ./data.json")
                             stdout = ssh_stdout.readlines()
+                            # inspector.addAttribute("stdout", stdout)
                             if (stdout != []):
                                 try:
                                     inspector.addAttribute(

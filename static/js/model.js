@@ -56,56 +56,81 @@ function download(data, filename, type) {
 
 // testing model
 function test() {
-    if (!isRunning) {
+    if (!isRunning || isLogin) {
         //get parameters
         var lists = document.querySelectorAll(".hyperparameter input[type=range]"); // get parameter components
-        var params = {}
-        for (var i = 0; i < lists.length; i++) {
-            params[i] = lists[i].value;
+
+        if (!isLogin) {
+            epSlider.max = lists[0].value;
+            epSlider.min = 1
+            epSlider.value = 1;
         }
 
-        epSlider.max = lists[0].value;
-        epSlider.min = 1;
-        epSlider.value = 1;
-
         // send to start test
-        $.getJSON($SCRIPT_ROOT + '/startTest', params, function(data) {
-            if (data.model) {
-                trainBtn.disabled = true; // disable train
-                updateLoadModDisabled(true); // disable loading model feature
-                isRunning = true;
-                chartReset();
-                testRecursion(); // start testing
+        $.getJSON($SCRIPT_ROOT + '/startTest', getParamsVal(lists), function(data) {
+            if(!isLogin) {
+                if (data.model) {
+                    trainBtn.disabled = true; // disable train
+                    updateLoadModDisabled(true); // disable loading model feature
+                    isRunning = true;
+                    chartReset();
+                    testRecursion(); // start testing
+                } else {
+                    window.alert("Model has not been trained!");
+                }
             } else {
-                window.alert("Model has not been trained!");
+                if (data["task"] == "testJob" &&
+                        (data["message"] == "Job started" || data["message"] == "Job already running")) {
+                    trainBtn.disabled = true; // disable train
+                    updateLoadModDisabled(true); // disable loading model feature
+                    isRunning = true;
+                }
             }
         });
     }
 }
 
+//get paramater values
+function getParamsVal(lists) {
+    var params = {}
+    for (var i = 0; i < lists.length; i++) {
+        params[i] = lists[i].value;
+    }
+//    console.log(params)
+    return params
+}
+
 
 //training the model
 function train() {
-    if (!isRunning) {
-        testBtn.disabled = true; // disable testing
-        updateLoadModDisabled(true); // disable load model feature
-        isRunning = true;
+    if (!isRunning || isLogin) {
+        if (!isLogin) {
+            testBtn.disabled = true; // disable testing
+            updateLoadModDisabled(true); // disable load model feature
+            isRunning = true;
+        }
         chartReset()
 
-        //get parameters
         var lists = document.querySelectorAll(".hyperparameter input[type=range]"); // get parameter components
-        var params = {}
-        for (var i = 0; i < lists.length; i++) {
-            params[i] = lists[i].value;
+        if (!isLogin) {
+            epSlider.max = lists[0].value;
+            epSlider.min = 1
+            epSlider.value = 1;
         }
 
-        epSlider.max = lists[0].value;
-        epSlider.min = 1
-        epSlider.value = 1;
-
         //send to start train
-        $.getJSON($SCRIPT_ROOT + '/startTrain', params, function(data) {
-            trainRecursion()
+        $.getJSON($SCRIPT_ROOT + '/startTrain', getParamsVal(lists), function(data) {
+//            console.log(data)
+            if (!isLogin) {
+                trainRecursion()
+            } else {
+                if (data["task"] == "runJob" &&
+                        (data["message"] == "Job started" || data["message"] == "Job already running")) {
+                    testBtn.disabled = true; // disable testing
+                    updateLoadModDisabled(true); // disable load model feature
+                    isRunning = true;
+                }
+            }
         });
     }
 }
@@ -453,4 +478,79 @@ function updateEpisodeSlider(sl) {
     {
         episode: sl.value
     })
+}
+
+
+function doPoll() {
+    try {
+        var lists = document.querySelectorAll(".hyperparameter input[type=range]"); // get parameter components
+        $.getJSON('/poll', getParamsVal(lists), function (result) {
+        // process results here
+//            console.log(result)
+            try {
+                updateAWSPage2(result)
+                setTimeout(doPoll, 1000);
+            } catch (e) {
+//                console.log("error2")
+//                console.log(e)
+                setTimeout(doPoll, 1000);
+            }
+        });
+    } catch (e) {
+//        console.log("error1")
+//        console.log(e)
+        setTimeout(doPoll, 5000);
+    }
+}
+
+function updateAWSPage2(result) {
+    if (result == "") {
+        alert("The response is empty");
+    } else {
+//        var state = result["instanceState"]
+//        var stateText = result["instanceStateText"]
+
+        var stateText = result["instanceStateText"]
+
+        if (stateText == "Idle") {
+            loaderWrapper.style.display = "none";
+            //TODO: enable all buttons
+        } else if (stateText == "Booting") {
+            loaderWrapper.style.display = "flex";
+        }
+        if (result["progress"] != undefined && result["progress"] != "waiting") {
+            var episodes = result["progress"]["episodes"]
+//            console.log(state)
+//            console.log(stateText)
+//            console.log(episodes)
+            //chart update
+            chartReset()
+            for (var index = 0; index < episodes.length; index++) {
+//                console.log(episodes[index])
+//                console.log(typeof episodes[index])
+                chartLossAdd(index+1, episodes[index]["l"]);
+                chartRewardAdd(index+1, episodes[index]["r"]);
+                chartEpsilonAdd(index+1, episodes[index]["p"]);
+                xVal = episodes[index]["e"]
+            }
+            chart.render()
+            totalTrainingReward.innerHTML = result["progress"]['totalReward'];
+            rewardPerEpisode.innerHTML = result["progress"]['avgReward'];
+
+            var gifs = result["progress"]["gifs"];
+            if (gifs.length > 0) {
+//                $("#training_image").attr("src", gifs[gifs.length - 1]);
+                displayEnvEp.innerHTML = gifs[gifs.length - 1].split("-episode-")[1].split(".")[0]
+                htmlImg.src = gifs[gifs.length - 1]
+            }
+
+            if (result["progress"]["episodesCompleted"] == result["arguments"]["episodes"]-1) {
+                isRunning = false
+                testBtn.disabled = false;
+                updateLoadModDisabled(false)
+                trainBtn.disabled= false
+            }
+        }
+
+    }
 }
