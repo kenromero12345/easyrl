@@ -252,25 +252,84 @@ def modelPageAWS(environment, agent, instance):
 # saving model
 @app.route('/saveModel')
 def saveModel():
-    # encode the model
-    temp = jsonpickle.encode((mod.agent.displayName, mod.agent.memsave()))
-    return jsonify(agent=temp)
+    if isLogin:
+        lambda_export_model(
+            request.session['aws_access_key'],
+            request.session['aws_secret_key'],
+            request.session['aws_security_token'],
+            request.session['job_id'],
+            {
+            }
+        )
+        return jsonify(agent=True)
+    else:
+        # encode the model
+        temp = jsonpickle.encode((mod.agent.displayName, mod.agent.memsave()))
+        return jsonify(agent=temp)
+
+def lambda_export_model(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
+    lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
+    data = {
+        "accessKey": aws_access_key,
+        "secretKey": aws_secret_key,
+        "sessionToken": aws_security_token,
+        "jobID": job_id,
+        "task": apps.TASK_EXPORT_MODEL,
+        "arguments": arguments
+    }
+    response = invoke_aws_lambda_func(lambdas, str(data).replace('\'','"'))
+    payload = response['Payload'].read()
+    print("{}lambda_export_model{}={}".format(apps.FORMAT_RED, apps.FORMAT_RESET, payload))
+    if len(payload) != 0:
+        return "{}".format(payload)[2:-1]
+    else:
+        return ""
 
 
 # loading model
 @app.route('/loadModel', methods=['POST'])
 def loadModel():
-    try:
-        name, mem = jsonpickle.decode(request.form.get('agent'))  # decode model
+    if isLogin:
+        lambda_import(
+            request.session['aws_access_key'],
+            request.session['aws_secret_key'],
+            request.session['aws_security_token'],
+            request.session['job_id'],
+            {}
+        )
+        return jsonify(success=True)
+    else:
+        try:
+            name, mem = jsonpickle.decode(request.form.get('agent'))  # decode model
 
-        # validate the decoded model
-        if mod.agent_class.displayName == name:
-            mod.isLoaded = True
-            mod.memload = mem
-            return jsonify(success=True)
-    except ValueError:
+            # validate the decoded model
+            if mod.agent_class.displayName == name:
+                mod.isLoaded = True
+                mod.memload = mem
+                return jsonify(success=True)
+        except ValueError:
+            return jsonify(success=False)
         return jsonify(success=False)
-    return jsonify(success=False)
+
+
+def lambda_import(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
+    lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
+    data = {
+        "accessKey": aws_access_key,
+        "secretKey": aws_secret_key,
+        "sessionToken": aws_security_token,
+        "jobID": job_id,
+        "task": apps.TASK_IMPORT,
+        "arguments": arguments,
+    }
+
+    response = invoke_aws_lambda_func(lambdas, str(data).replace('\'', '"'))
+    print("{}lambda_terminate_instance{}={}".format(apps.FORMAT_RED, apps.FORMAT_RESET, response['Payload'].read()))
+    if response['StatusCode'] == 200:
+        streambody = response['Payload'].read().decode()
+        print("{}stream_body{}={}".format(apps.FORMAT_BLUE, apps.FORMAT_RESET, streambody))
+        return True
+    return False
 
 
 # starting training
@@ -297,42 +356,6 @@ def startTrain():
             securityToken,
             jobID,
             payload
-            # {
-            #     "instanceType": get_safe_value(str, awsInst, "c4.xlarge")
-            #     , "instanceID": get_safe_value(str, awsSession, "")
-            #     , "killTime": get_safe_value(int, awsKillTime, 600)
-            #     , "environment": get_safe_value(int, awsCurEnv.get('index'), 1)
-            #     , "continuousTraining": get_safe_value(str, awsContTrain, "False")
-            #     , "agent": get_safe_value(int, awsCurAg.get('index'), 1)
-            #     , "episodes": get_safe_value(int, awsEpisode, 20)
-            #     , "steps": get_safe_value(int, awsSteps, 50)
-            #     , "gamma": get_safe_value(float, awsGamma, 0.97)
-            #     , "minEpsilon": get_safe_value(float, awsMinEpsilon, 0.01)
-            #     , "maxEpsilon": get_safe_value(float, awsMaxEpsilon, 0.99)
-            #     , "decayRate": get_safe_value(float, awsDecayRate, 0.01)
-            #     , "batchSize": get_safe_value(int, awsBatchSize, 32)
-            #     , "memorySize": get_safe_value(int, awsMemorySize, 1000)
-            #     , "targetInterval": get_safe_value(int, awsTargetInterval, 10)
-            #     , "alpha": get_safe_value(float, awsAlpha, 0.9)
-            #     , "historyLength": get_safe_value(int, awsHistoryLength, 10)
-            #
-            #     , "delta": get_safe_value(int, awsDelta, 0.001)
-            #     , "sigma": get_safe_value(int, awsSigma, 0.5)
-            #     , "population": get_safe_value(int, awsPopulation, 10)
-            #     , "elite": get_safe_value(int, awsElite, 0.2)
-            #
-            #     , "tau": get_safe_value(int, awsTau, 0.97)
-            #     , "temperature": get_safe_value(int, awsTemperature, 0.97)
-            #
-            #     , "learningRate": get_safe_value(int, awsLearningRate, 0.001)
-            #     , "policyLearnRate": get_safe_value(int, awsPolicyLearnRate, 0.001)
-            #     , "valueLearnRate": get_safe_value(int, awsValueLearnRate, 0.001)
-            #     , "horizon": get_safe_value(int, awsHorizon, 50)
-            #     , "epochSize": get_safe_value(int, awsEpochSize, 500)
-            #     , "ppoEpsilon": get_safe_value(int, awsPpoEpsilon, 0.2)
-            #     , "ppoLambda": get_safe_value(int, awsPpoLambda, 0.95)
-            #     , "valueLearnRatePlus": get_safe_value(int, awsValueLearnRatePlus, 0.001)
-            # }
         )
     else:
         if mod.isRunning:  # if model is running
@@ -691,9 +714,39 @@ def serve_pil_image(pil_img):
 # stop training or testing
 @app.route('/halt')
 def halt():
-    if mod.isRunning:
-        mod.halt_learning()
-    return jsonify(finished=True)
+    if isLogin:
+        lambda_halt_job(
+            request.session['aws_access_key'],
+            request.session['aws_secret_key'],
+            request.session['aws_security_token'],
+            request.session['job_id'],
+            {
+            }
+        )
+        return jsonify(finished=True)
+    else:
+        if mod.isRunning:
+            mod.halt_learning()
+        return jsonify(finished=True)
+
+
+def lambda_halt_job(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
+    lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
+    data = {
+        "accessKey": aws_access_key,
+        "secretKey": aws_secret_key,
+        "sessionToken": aws_security_token,
+        "jobID": job_id,
+        "task": apps.TASK_HALT_JOB,
+        "arguments": arguments
+    }
+    response = invoke_aws_lambda_func(lambdas, str(data).replace('\'','"'))
+    payload = response['Payload'].read()
+    print("{}lambda_halt_job{}={}".format(apps.FORMAT_RED, apps.FORMAT_RESET, payload))
+    if len(payload) != 0:
+        return "{}".format(payload)[2:-1]
+    else:
+        return ""
 
 
 # change display episode

@@ -124,8 +124,8 @@ function train() {
             if (!isLogin) {
                 trainRecursion()
             } else {
-                if (data["task"] == "runJob" &&
-                        (data["message"] == "Job started" || data["message"] == "Job already running")) {
+                console.log(data)
+                if (data["message"] == "Job started" || data["message"] == "Job already running") {
                     testBtn.disabled = true; // disable testing
                     updateLoadModDisabled(true); // disable load model feature
                     isRunning = true;
@@ -513,6 +513,10 @@ function updateAWSPage2(result) {
         var stateText = result["instanceStateText"]
 
         if (stateText == "Idle") {
+            isRunning = false;
+            testBtn.disabled = false;
+            updateLoadModDisabled(false)
+            trainBtn.disabled= false;
             loaderWrapper.style.display = "none";
             //TODO: enable all buttons
         } else if (stateText == "Booting") {
@@ -544,13 +548,12 @@ function updateAWSPage2(result) {
                 htmlImg.src = gifs[gifs.length - 1]
             }
 
-            if (result["progress"]["episodesCompleted"] == result["arguments"]["episodes"]-1) {
-                isRunning = false
+            if (result["progress"]["episodesCompleted"] == result["jobArguments"]["episodes"]-1) {
+                isRunning = false;
                 testBtn.disabled = false;
                 updateLoadModDisabled(false)
-                trainBtn.disabled= false
+                trainBtn.disabled= false;
             }
         }
-
     }
 }
