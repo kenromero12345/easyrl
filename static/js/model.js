@@ -68,6 +68,7 @@ function test() {
 
         // send to start test
         $.getJSON($SCRIPT_ROOT + '/startTest', getParamsVal(lists), function(data) {
+//            console.log(data)
             if(!isLogin) {
                 if (data.model) {
                     trainBtn.disabled = true; // disable train
@@ -79,11 +80,17 @@ function test() {
                     window.alert("Model has not been trained!");
                 }
             } else {
-                if (data["task"] == "testJob" &&
-                        (data["message"] == "Job started" || data["message"] == "Job already running")) {
-                    trainBtn.disabled = true; // disable train
-                    updateLoadModDisabled(true); // disable loading model feature
-                    isRunning = true;
+//                if (data["message"] == "Job started" || data["message"] == "Job already running") {
+//                    trainBtn.disabled = true; // disable train
+//                    updateLoadModDisabled(true); // disable loading model feature
+//                    isRunning = true;
+//                }
+
+//                console.log(data['error'])
+                if (data['error'] != undefined && data['error'] == "No trained agent found") {
+                    window.alert("Model has not been trained!");
+                } else if (data['error'] == "Instance not found.") {
+                    window.alert("Instance not found.");
                 }
             }
         });
@@ -104,11 +111,11 @@ function getParamsVal(lists) {
 //training the model
 function train() {
     if (!isRunning || isLogin) {
-        if (!isLogin) {
-            testBtn.disabled = true; // disable testing
-            updateLoadModDisabled(true); // disable load model feature
-            isRunning = true;
-        }
+//        if (!isLogin) {
+//            testBtn.disabled = true; // disable testing
+//            updateLoadModDisabled(true); // disable load model feature
+//            isRunning = true;
+//        }
         chartReset()
 
         var lists = document.querySelectorAll(".hyperparameter input[type=range]"); // get parameter components
@@ -124,12 +131,15 @@ function train() {
             if (!isLogin) {
                 trainRecursion()
             } else {
-                console.log(data)
-                if (data["message"] == "Job started" || data["message"] == "Job already running") {
-                    testBtn.disabled = true; // disable testing
-                    updateLoadModDisabled(true); // disable load model feature
-                    isRunning = true;
+                if (data['error'] == "Instance not found.") {
+                    window.alert("Instance not found.");
                 }
+//                console.log(data)
+//                if (data["message"] == "Job started" || data["message"] == "Job already running") {
+//                    testBtn.disabled = true; // disable testing
+//                    updateLoadModDisabled(true); // disable load model feature
+//                    isRunning = true;
+//                }
             }
         });
     }
@@ -234,17 +244,33 @@ function saveModel(btn) {
 
     //send to save the current model
     $.getJSON($SCRIPT_ROOT + '/saveModel', function(data) {
-        if (data.agent == "null") { // model is null
-            window.alert("No model to be saved");
+        if (isLogin) {
+            if (data['error'] == "Instance not found.") {
+                window.alert("Instance not found.");
+            } else if (data['error'] == "Model not trained yet!") {
+                window.alert("Model has not been trained!");
+            } else {
+//                location.replace(data['url'])
+                window.location.href = data['url']
+                //hide components
+//                input.style.display = "none";
+                btn.style.display = "none";
+
+//                input.value = ""; // input text clear
+            }
         } else {
-            download(data.agent, input.value, "txt")// download to user's system
+            if (data.agent == "null") { // model is null
+                window.alert("No model to be saved");
+            } else {
+                download(data.agent, input.value, "txt")// download to user's system
+            }
+
+            //hide components
+            input.style.display = "none";
+            btn.style.display = "none";
+
+            input.value = ""; // input text clear
         }
-
-        //hide components
-        input.style.display = "none";
-        btn.style.display = "none";
-
-        input.value = ""; // input text clear
     });
 }
 
@@ -252,6 +278,28 @@ function saveModel(btn) {
 
 //loading model
 function loadModel(btn) {
+//    if (isLogin) {
+//        let fd = new FormData(this);
+//        let url = '/loadModel'
+//        console.log("uploading")
+//        let upload = await $.ajax({
+//            type: 'POST',
+//            url: url,
+//            data: fd,
+//            processData: false,
+//            contentType: false,
+//            success : function(result) {
+//                alert("Loading Model Success");
+//                uploadModIn.style.display = "none";
+//                uploadModBtn.style.display = "none";
+//                uploadModIn.value = "";
+//            },
+//            error: function () {
+//                alert("Error Loading Model!");
+//            }
+//        });
+//    }
+
     input = btn.previousElementSibling
 
     //loading file
@@ -262,6 +310,17 @@ function loadModel(btn) {
         $.post($SCRIPT_ROOT + '/loadModel', { //send to load model
             agent: temp
         }, function(data) {
+            //TODO: if login
+//            if (isLogin) {
+//                if (data.error == "Instance not found.") {
+//                    window.alert("Instance not found.");
+//                } else {
+//                    window.alert(data.error);
+//                    input.style.display = "none";
+//                    btn.style.display = "none";
+//                    input.value = "";
+//                }
+//            } else {
             if (data.success) { // data is loaded successfully
                 window.alert("Model Uploaded");
 
@@ -272,6 +331,7 @@ function loadModel(btn) {
             } else {
                 window.alert("Incorrect Model! Loading Unsuccessful");
             }
+//            }
         });
     }
     fr.readAsText(input.files[0]); //read file
@@ -290,22 +350,33 @@ function toggleDataSeries(e) {
 //reset the graph, display, and the model
 function reset() {
     $.getJSON($SCRIPT_ROOT + '/reset', function() {
-        isRunning = false;
-        chartReset();
-        isDisplaying = true // helps to reset image
-        displayRecursion(); // reset image
-        trainBtn.disabled = false; // enable train
-        updateLoadModDisabled(false); // enable loading model feature
-        testBtn.disabled = false // enable test
-        isReset = true;
-        epSlider.value = 1
+        if(isLogin) {
+//            console.log(data) // there is not a reset for Cloud version, so this will not work
+        } else {
+            isRunning = false;
+            chartReset();
+            isDisplaying = true // helps to reset image
+            displayRecursion(); // reset image
+            trainBtn.disabled = false; // enable train
+            updateLoadModDisabled(false); // enable loading model feature
+            testBtn.disabled = false // enable test
+            isReset = true;
+            epSlider.value = 1
+        }
     }); // send to reset model
 }
 
 //halt training or testing
 function halt() {
     isRunning = false;
-    $.getJSON($SCRIPT_ROOT + '/halt')
+    $.getJSON($SCRIPT_ROOT + '/halt', function(data) {
+        if(isLogin) {
+//            console.log(data)
+            if (data['error'] == "Instance not found.") {
+                window.alert("Instance not found.");
+            }
+        }
+    })
 }
 
 //reset the graph
@@ -509,19 +580,25 @@ function updateAWSPage2(result) {
     } else {
 //        var state = result["instanceState"]
 //        var stateText = result["instanceStateText"]
-
+//        console.log(result)
         var stateText = result["instanceStateText"]
-
+//        console.log(stateText)
+//        console.log(stateText == "Running Task")
         if (stateText == "Idle") {
             isRunning = false;
-            testBtn.disabled = false;
-            updateLoadModDisabled(false)
-            trainBtn.disabled= false;
+            awsToggleBtns(false)
             loaderWrapper.style.display = "none";
             //TODO: enable all buttons
         } else if (stateText == "Booting") {
             loaderWrapper.style.display = "flex";
+        } else if (stateText == "Running Task" || stateText == "Starting Task") {
+            isRunning = true;
+            awsToggleBtns(true)
         }
+//        else if (stateText == "Loading...") {
+//
+//        }
+
         if (result["progress"] != undefined && result["progress"] != "waiting") {
             var episodes = result["progress"]["episodes"]
 //            console.log(state)
@@ -548,12 +625,28 @@ function updateAWSPage2(result) {
                 htmlImg.src = gifs[gifs.length - 1]
             }
 
-            if (result["progress"]["episodesCompleted"] == result["jobArguments"]["episodes"]-1) {
-                isRunning = false;
-                testBtn.disabled = false;
-                updateLoadModDisabled(false)
-                trainBtn.disabled= false;
-            }
+//            if (result["progress"]["episodesCompleted"] == result["jobArguments"]["episodes"]-1 || stateText == "Idle") {
+//                isRunning = false;
+//                testBtn.disabled = false;
+//                updateLoadModDisabled(false)
+//                trainBtn.disabled= false;
+//            }
+
         }
     }
 }
+
+function awsToggleBtns(bool) {
+    testBtn.disabled = bool;
+    updateLoadModDisabled(bool)
+    trainBtn.disabled= bool;
+    loadModBtn.disabled = bool;
+    uploadModIn.disabled = bool;
+    uploadModBtn.disabled = bool;
+    saveModBtn.disabled = bool;
+    if (!isLogin) {
+        downloadModIn.disabled = bool;
+    }
+    downloadModBtn.disabled = bool;
+}
+

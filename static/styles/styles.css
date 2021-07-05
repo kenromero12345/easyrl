@@ -314,3 +314,11 @@ p {
     align-items: center;
     display: flex;
 }
+
+#session {
+    display: none;
+}
+
+#upload_form {
+    display: inline-block;
+}

@@ -2,6 +2,15 @@
 //making load elements visible
 function makeLoadVisible(button) {
     input = button.nextElementSibling;
+//    console.log(input)
+//    console.log(input.tagName)
+    if (input.tagName == "FORM") {
+        console.log(input)
+        input = input.firstElementChild;
+        console.log(input)
+        input = input.nextElementSibling;
+        console.log(input)
+    }
     uploadBtn = input.nextElementSibling;
     flag = input.style.display
     hideUploadDownload();

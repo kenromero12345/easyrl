@@ -8,6 +8,9 @@ import botocore
 from PIL.Image import Image
 from flask import Flask, render_template, g, request, jsonify, send_file
 import time
+
+# from storages.backends.s3boto3 import S3Boto3Storage
+
 from Agents import qLearning, drqn, deepQ, adrqn, agent as ag, doubleDuelingQNative, drqnNative, drqnConvNative, \
     ppoNative, \
     reinforceNative, actorCriticNative, cem, npg, ddpg, sac, trpo, rainbow
@@ -20,7 +23,7 @@ import queue
 from MVC.model import Model
 import sys
 import jsonpickle
-from utilities import get_aws_lambda, \
+from utilities import get_aws_lambda, get_aws_s3, \
     invoke_aws_lambda_func, is_valid_aws_credential, generate_jobID
 import apps
 import logging
@@ -32,7 +35,6 @@ import logging
 
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # do not use cache in this application
-
 
 # Starting application
 # Sending environment and agent names and allowed environments and agents to be blocked
@@ -93,14 +95,21 @@ def loginPage():
 # logging in the AWS account
 @app.route('/loggingIn')
 def loggingIn():
-    global isLogin, accessKey, secretKey, securityToken
+    global isLogin, accessKey, secretKey, securityToken, jobID
     accessKey = request.args.get('accessKey')
     secretKey = request.args.get('secretKey')
     securityToken = request.args.get('securityToken')
     is_valid_aws_credential(accessKey, secretKey, securityToken)
     isLogin = is_valid_aws_credential(accessKey, secretKey, securityToken)
+    # TODO: change
+    # jobID = generate_jobID()
+    jobID = "1"
     if isLogin:
         # mod.createBridge(jobID, secretKey, accessKey, securityToken)
+        # session = boto3.session.Session()
+        # os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
+        global awsS3
+        awsS3 = get_aws_s3(accessKey, secretKey)
         return jsonify(success=True)
     else:
         return jsonify(success=False)
@@ -109,9 +118,8 @@ def loggingIn():
 # logging out the AWS account
 @app.route('/logout')
 def logout():
-    global isLogin
+    global isLogin, jobID
     isLogin = False
-
     # TODO: replace request.post.get
     lambda_terminate_instance(
         accessKey,
@@ -121,6 +129,7 @@ def logout():
         {
         }
     )
+    jobID = None
 
     return jsonify(success=True)
 
@@ -253,19 +262,20 @@ def modelPageAWS(environment, agent, instance):
 @app.route('/saveModel')
 def saveModel():
     if isLogin:
-        lambda_export_model(
-            request.session['aws_access_key'],
-            request.session['aws_secret_key'],
-            request.session['aws_security_token'],
-            request.session['job_id'],
+        temp = lambda_export_model(
+            accessKey,
+            secretKey,
+            securityToken,
+            jobID,
             {
             }
         )
-        return jsonify(agent=True)
+        return temp
     else:
         # encode the model
         temp = jsonpickle.encode((mod.agent.displayName, mod.agent.memsave()))
         return jsonify(agent=temp)
+
 
 def lambda_export_model(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
     lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
@@ -277,7 +287,7 @@ def lambda_export_model(aws_access_key, aws_secret_key, aws_security_token, job_
         "task": apps.TASK_EXPORT_MODEL,
         "arguments": arguments
     }
-    response = invoke_aws_lambda_func(lambdas, str(data).replace('\'','"'))
+    response = invoke_aws_lambda_func(lambdas, str(data).replace('\'', '"'))
     payload = response['Payload'].read()
     print("{}lambda_export_model{}={}".format(apps.FORMAT_RED, apps.FORMAT_RESET, payload))
     if len(payload) != 0:
@@ -290,14 +300,63 @@ def lambda_export_model(aws_access_key, aws_secret_key, aws_security_token, job_
 @app.route('/loadModel', methods=['POST'])
 def loadModel():
     if isLogin:
-        lambda_import(
-            request.session['aws_access_key'],
-            request.session['aws_secret_key'],
-            request.session['aws_security_token'],
-            request.session['job_id'],
-            {}
-        )
-        return jsonify(success=True)
+        if "upload" not in request.files:
+            return "No file"
+
+        # mem = request.form.get('agent')
+        mem = request.files["upload"]
+
+        if mem == "":
+            return "Please select a file"
+
+        if mem:
+            # print(mem)
+            # name = "easyrl-{}{}".format(jobID, awsSession)
+            name = "easyrl-{}".format(jobID)
+            # name = "easyrl"
+            awsS3.create_bucket(ACL='public-read', Bucket=name)
+            upload_file_to_s3(mem, name)
+
+            # output = upload_file()
+            # return str(output)
+            # print(str(output))
+            temp = lambda_import(
+                accessKey,
+                secretKey,
+                securityToken,
+                jobID,
+                {}
+            )
+            print(temp)
+            return temp
+
+
+            # bucket = "easyrl-{}{}".format(jobID, awsSession)
+            #
+            # media_storage = S3Boto3Storage()
+            # media_storage.location = ''
+            # media_storage.file_overwrite = True
+            # media_storage.access_key = accessKey
+            # media_storage.secret_key = secretKey
+            # media_storage.bucket_name = bucket
+            #
+            # s3_file_path = os.path.join(
+            #     media_storage.location,
+            #     'model.bin'
+            # )
+            #
+            # media_storage.save(s3_file_path, mem)
+            #
+            # temp = lambda_import(
+            #     accessKey,
+            #     secretKey,
+            #     securityToken,
+            #     jobID,
+            #     {}
+            # )
+            # print(mem)
+            # print(temp)
+            # return temp
     else:
         try:
             name, mem = jsonpickle.decode(request.form.get('agent'))  # decode model
@@ -312,6 +371,31 @@ def loadModel():
         return jsonify(success=False)
 
 
+def upload_file_to_s3(file, bucket_name, acl="public-read"):
+
+    """
+    Docs: http://boto3.readthedocs.io/en/latest/guide/s3.html
+    """
+
+    try:
+        awsS3.upload_fileobj(
+            file,
+            bucket_name,
+            "model.bin"
+            ,
+            ExtraArgs={
+                "ACL": acl,
+                "ContentType": file.content_type
+            }
+        )
+
+    except Exception as e:
+        print("Something Happened: ", e)
+        return e
+
+    return "{}{}".format('', file.filename)
+
+
 def lambda_import(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
     lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
     data = {
@@ -324,12 +408,18 @@ def lambda_import(aws_access_key, aws_secret_key, aws_security_token, job_id, ar
     }
 
     response = invoke_aws_lambda_func(lambdas, str(data).replace('\'', '"'))
-    print("{}lambda_terminate_instance{}={}".format(apps.FORMAT_RED, apps.FORMAT_RESET, response['Payload'].read()))
-    if response['StatusCode'] == 200:
-        streambody = response['Payload'].read().decode()
-        print("{}stream_body{}={}".format(apps.FORMAT_BLUE, apps.FORMAT_RESET, streambody))
-        return True
-    return False
+    payload = response['Payload'].read()
+    print("{}lambda_import{}={}".format(apps.FORMAT_RED, apps.FORMAT_RESET, response['Payload'].read()))
+    # if response['StatusCode'] == 200:
+    #     streambody = response['Payload'].read().decode()
+    #     print("{}stream_body{}={}".format(apps.FORMAT_BLUE, apps.FORMAT_RESET, streambody))
+    #     return True
+    # return False
+    print(response)
+    if len(payload) != 0:
+        return "{}".format(payload)[2:-1]
+    else:
+        return ""
 
 
 # starting training
@@ -444,33 +534,41 @@ def setUpPayload():
         elif ("alpha" == awsCurAg.get('parameters')[j]):
             payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.9)
         elif ("delta" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.001) #TODO: change from int
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j],
+                                                                    0.001)  # TODO: change from int
         elif ("sigma" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.5) #TODO: change from int
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.5)  # TODO: change from int
         elif ("population" == awsCurAg.get('parameters')[j]):
             payload[awsCurAg.get('parameters')[j]] = get_safe_value(int, inputParams[j], 10)
         elif ("elite" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.2)#TODO: change from int
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.2)  # TODO: change from int
         elif ("tau" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.97)#TODO: change from int
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j],
+                                                                    0.97)  # TODO: change from int
         elif ("temperature" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.97)#TODO: change from int
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j],
+                                                                    0.97)  # TODO: change from int
         elif ("learningRate" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.001)#TODO: change from int
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j],
+                                                                    0.001)  # TODO: change from int
         elif ("policyLearnRate" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.001)#TODO: change from int
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j],
+                                                                    0.001)  # TODO: change from int
         elif ("valueLearnRate" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.001)#TODO: change from int
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j],
+                                                                    0.001)  # TODO: change from int
         elif ("horizon" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 50) # TODO: right? float?
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 50)  # TODO: right? float?
         elif ("epochSize" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 500) # TODO: right? float?
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 500)  # TODO: right? float?
         elif ("ppoEpsilon" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.2)#TODO: change from int
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.2)  # TODO: change from int
         elif ("ppoLambda" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.95)#TODO: change from int
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j],
+                                                                    0.95)  # TODO: change from int
         elif ("valueLearnRatePlus" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.001)#TODO: change from int
+            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j],
+                                                                    0.001)  # TODO: change from int
     return payload
 
 
@@ -484,7 +582,7 @@ def lambda_run_job(aws_access_key, aws_secret_key, aws_security_token, job_id, a
         "task": apps.TASK_RUN_JOB,
         "arguments": arguments,
     }
-    response = invoke_aws_lambda_func(lambdas, str(data).replace('\'','"'))
+    response = invoke_aws_lambda_func(lambdas, str(data).replace('\'', '"'))
     payload = response['Payload'].read()
     # print("{}lambda_run_job{}={}".format(apps.FORMAT_RED, apps.FORMAT_RESET, payload))
     if len(payload) != 0:
@@ -496,6 +594,13 @@ def lambda_run_job(aws_access_key, aws_secret_key, aws_security_token, job_id, a
 # poll
 @app.route('/poll')
 def poll():
+    if jobID is None:
+        return {
+            "instanceState": "booting",
+            "instanceStateText": "Loading...",
+            "error": "No Job ID"
+        }
+
     global inputParams, tempImages
     inputParams = []
     tempImages = []
@@ -524,6 +629,7 @@ def poll():
             "instanceStateText": "Loading..."
         }
 
+
 def lambda_poll(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
     lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
     data = {
@@ -542,6 +648,7 @@ def lambda_poll(aws_access_key, aws_secret_key, aws_security_token, job_id, argu
         return "{}".format(payload)[2:-1]
     else:
         return ""
+
 
 # running training
 @app.route('/runTrain')
@@ -671,7 +778,7 @@ def lambda_test_job(aws_access_key, aws_secret_key, aws_security_token, job_id, 
         "task": apps.TASK_RUN_TEST,
         "arguments": arguments,
     }
-    response = invoke_aws_lambda_func(lambdas, str(data).replace('\'','"'))
+    response = invoke_aws_lambda_func(lambdas, str(data).replace('\'', '"'))
     payload = response['Payload'].read()
     print("{}lambda_test_job{}={}".format(apps.FORMAT_RED, apps.FORMAT_RESET, payload))
     if len(payload) != 0:
@@ -715,15 +822,14 @@ def serve_pil_image(pil_img):
 @app.route('/halt')
 def halt():
     if isLogin:
-        lambda_halt_job(
-            request.session['aws_access_key'],
-            request.session['aws_secret_key'],
-            request.session['aws_security_token'],
-            request.session['job_id'],
+        return lambda_halt_job(
+            accessKey,
+            secretKey,
+            securityToken,
+            jobID,
             {
             }
         )
-        return jsonify(finished=True)
     else:
         if mod.isRunning:
             mod.halt_learning()
@@ -740,7 +846,7 @@ def lambda_halt_job(aws_access_key, aws_secret_key, aws_security_token, job_id, 
         "task": apps.TASK_HALT_JOB,
         "arguments": arguments
     }
-    response = invoke_aws_lambda_func(lambdas, str(data).replace('\'','"'))
+    response = invoke_aws_lambda_func(lambdas, str(data).replace('\'', '"'))
     payload = response['Payload'].read()
     print("{}lambda_halt_job{}={}".format(apps.FORMAT_RED, apps.FORMAT_RESET, payload))
     if len(payload) != 0:
@@ -937,12 +1043,11 @@ if __name__ == "__main__":
     curDisplayIndex = 0
     curThread = None
 
-
     isLogin = False
     accessKey = None
     secretKey = None
     securityToken = None
-    jobID = generate_jobID()
+    jobID = None
     instances = ["c4.large ($0.10/hr)", "c4.xlarge ($0.19/hr)", "c4.2xlarge ($0.39/hr)", "c4.4xlarge ($0.79/hr)",
                  "c4.8xlarge ($1.59/hr)", "g4dn.xlarge ($0.52/hr)", "g4dn.2xlarge ($0.75/hr)",
                  "g4dn.4xlarge ($1.20/hr)", "g4dn.8xlarge ($2.17/hr)"]
@@ -955,6 +1060,7 @@ if __name__ == "__main__":
     awsSession = 1
     awsKillTime = 31536000
     awsContTrain = 0
+    awsS3 = None
     app.run()
 
 # class AWSLambdaKeys:

@@ -48,3 +48,4 @@ botoSession = boto3.Session (
 
 s3Client = botoSession.client('s3')
 s3Client.download_file('easyrl-' + str(jobID), path, path)
+# s3Client.download_file('easyrl', path, path)
