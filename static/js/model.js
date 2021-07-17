@@ -103,6 +103,7 @@ function getParamsVal(lists) {
     for (var i = 0; i < lists.length; i++) {
         params[i] = lists[i].value;
     }
+    params['session'] = session
 //    console.log(params)
     return params
 }
@@ -148,7 +149,7 @@ function train() {
 //running testing per episode
 function testRecursion() {
     //send to test an episode
-    $.getJSON($SCRIPT_ROOT + '/runTest', function(data) {
+    $.getJSON($SCRIPT_ROOT + '/runTest', {session: session} , function(data) {
         if (data.finished) { //testing is complete
             isRunning = false;
             trainBtn.disabled = false;
@@ -168,7 +169,7 @@ function testRecursion() {
 
 //running training per episode
 function trainRecursion() {
-    $.getJSON($SCRIPT_ROOT + '/runTrain', function(data) {
+    $.getJSON($SCRIPT_ROOT + '/runTrain', {session: session}, function(data) {
         if (data.finished) { //training is complete
             isRunning = false;
             testBtn.disabled = false;
@@ -243,7 +244,7 @@ function saveModel(btn) {
     input = btn.previousElementSibling;
 
     //send to save the current model
-    $.getJSON($SCRIPT_ROOT + '/saveModel', function(data) {
+    $.getJSON($SCRIPT_ROOT + '/saveModel', {session: session}, function(data) {
         if (isLogin) {
             if (data['error'] == "Instance not found.") {
                 window.alert("Instance not found.");
@@ -308,7 +309,8 @@ function loadModel(btn) {
     fr.onload=function(){
         temp = fr.result;
         $.post($SCRIPT_ROOT + '/loadModel', { //send to load model
-            agent: temp
+            agent: temp,
+            session: session
         }, function(data) {
             //TODO: if login
 //            if (isLogin) {
@@ -349,7 +351,7 @@ function toggleDataSeries(e) {
 
 //reset the graph, display, and the model
 function reset() {
-    $.getJSON($SCRIPT_ROOT + '/reset', function() {
+    $.getJSON($SCRIPT_ROOT + '/reset', {session: session}, function() {
         if(isLogin) {
 //            console.log(data) // there is not a reset for Cloud version, so this will not work
         } else {
@@ -369,7 +371,7 @@ function reset() {
 //halt training or testing
 function halt() {
     isRunning = false;
-    $.getJSON($SCRIPT_ROOT + '/halt', function(data) {
+    $.getJSON($SCRIPT_ROOT + '/halt', {session: session}, function(data) {
         if(isLogin) {
 //            console.log(data)
             if (data['error'] == "Instance not found.") {
@@ -491,9 +493,9 @@ function updateLoadModDisabled(bool) {
 //display change helper recursion
 function displayRecursion() {
     if (isDisplaying) {
-        $.get($SCRIPT_ROOT + '/tempImage', function() {
+        $.get($SCRIPT_ROOT + '/tempImage', {session: session}, function() {
             htmlImg.src = tempImgUrl;
-            $.get($SCRIPT_ROOT + '/tempImageEpStep', function(data) {
+            $.get($SCRIPT_ROOT + '/tempImageEpStep', {session: session}, function(data) {
                 displayEnvEp.innerHTML = data.episode;
                 epSlider.title = data.episode;
                 epSlider.data = data.episode;
@@ -547,7 +549,8 @@ function ratioUpdate(cb) {
 function updateEpisodeSlider(sl) {
     $.get($SCRIPT_ROOT + '/changeDisplayEpisode',
     {
-        episode: sl.value
+        episode: sl.value,
+        session: session,
     })
 }
 
@@ -636,6 +639,7 @@ function updateAWSPage2(result) {
     }
 }
 
+//Disable and enable buttons using the given boolean
 function awsToggleBtns(bool) {
     testBtn.disabled = bool;
     updateLoadModDisabled(bool)
@@ -649,4 +653,3 @@ function awsToggleBtns(bool) {
     }
     downloadModBtn.disabled = bool;
 }
-

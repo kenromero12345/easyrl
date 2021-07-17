@@ -33,9 +33,9 @@
                     </ul>
                     <div class="navbar-nav">
                         {% if isLogin %}
-                            <a class="nav-link logout" onClick="logout()">Logout</a>
+                            <a class="nav-link logout" onClick="logout({{session}})">Logout</a>
                         {% else %}
-                            <a class="nav-link" href="/login">Login</a>
+                            <a class="nav-link" href="/login/{{session}}">Login</a>
                         {% endif %}
                     </div>
                 </div>
@@ -67,7 +67,7 @@
             <form id="upload_form" action="/loadModel" method="post" enctype="multipart/form-data">
             {% endif %}
                 {% if isLogin %}
-                <input type="text" id="session" name="session" />
+                <input type="text" id="session" name="session" value="{{session}}"/>
                 {% endif %}
                 <input class="form-control" type="file" id="uploadModIn" name="upload"
                         data-bs-toggle="tooltip" data-bs-placement="top" title="File uploading input"/>
@@ -101,6 +101,12 @@
             <button type="button" class="btn btn-primary saveNameBtn"
                     onClick="saveResults(this)" data-bs-toggle="tooltip" data-bs-placement="top"
                     title="Confirm saving the results of the current session">Download</button>
+            <button id="newTab" type="button" class="btn btn-primary" onclick="newTab(this);"
+                    data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Add new Tab">+</button>
+            <input id="sessionDisplay" type="text" name="Session" value="Session {{session}}" disabled
+                   data-bs-toggle="tooltip" data-bs-placement="top"
+                   title="{{session}}">
         </div>
 
     <!--hyperparameters-->
@@ -235,6 +241,7 @@
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             })
 
+
             //aws
             {% if isLogin %}
                 var isLogin = true;
@@ -282,6 +289,8 @@
 
 
             });
+
+            var session = {{session}}
 
         </script>
     </body>

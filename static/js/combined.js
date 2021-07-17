@@ -29,8 +29,17 @@ function hideUploadDownload() {
 }
 
 //logging out the aws account
-function logout() {
-    $.get($SCRIPT_ROOT + '/logout', function(data) {
-        location.replace("/index");
+function logout(session) {
+    $.get($SCRIPT_ROOT + '/logout/' + session, function(data) {
+        location.replace("/index/" + session);
+    })
+}
+
+// start a new tab
+function newTab(btn) {
+    input = btn.nextElementSibling;
+//    newVal = parseInt(input.title) + 1;
+    $.get($SCRIPT_ROOT + '/newWindow', function(data) {
+        window.open('/index/' + data.session);
     })
 }

@@ -33,40 +33,56 @@ import logging
 # log.setLevel(logging.ERROR)
 
 
-app = Flask(__name__)
+app = Flask(__name__)  #intialiaze app
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # do not use cache in this application
+
 
 # Starting application
 # Sending environment and agent names and allowed environments and agents to be blocked
 # displaying index page
 @app.route('/')
-@app.route('/index')
-def indexPage():
-    if isLogin:
+@app.route('/index/<session>')
+def indexPage(session=1):
+    mh = getMH(session)  # get the session
 
-        info = lambda_info(accessKey,
-                           secretKey,
-                           securityToken,
-                           jobID, {})
+    # create session if mh is None
+    if mh is None:
+        mh = ModelHelper(int(session))
+        # mh.awsSession = int(session)
+        mhList.append(mh)
+
+    if mh.isLogin:
+        # get info
+        info = lambda_info(mh.accessKey,
+                           mh.secretKey,
+                           mh.securityToken,
+                           mh.jobID, {})
         info = json.loads(info)
+
         # temp = [i.get('name') for i in info.get('environments')]
+
+        # iterate through the environment
         for i in range(len(info.get('environments'))):
             name = info.get('environments')[i].get('name')
             name = name.lower().replace(" ", "_")
             info.get('environments')[i].update({"file": name})
-        global awsAg, awsEnv, awsEnvMap, awsAgMap, awsParam
-        awsEnv = info.get('environments')
-        awsAg = info.get('agents')
-        awsEnvMap = info.get('environmentsMap')
-        awsAgMap = info.get('agentsMap')
-        awsParam = info.get('parameters')
+
+        # global awsAg, awsEnv, awsEnvMap, awsAgMap, awsParam
+        mh.awsEnv = info.get('environments')
+        mh.awsAg = info.get('agents')
+        mh.awsEnvMap = info.get('environmentsMap')
+        mh.awsAgMap = info.get('agentsMap')
+        mh.awsParam = info.get('parameters')
         return render_template('index.html', env=info.get('environments'), agt=info.get('agents'),
-                               envMap=awsEnvMap, agMap=awsAgMap, isLogin=isLogin, instances=instances)
+                               envMap=mh.awsEnvMap, agMap=mh.awsAgMap, isLogin=mh.isLogin, instances=instances,
+                               session=mh.awsSession)
     else:
         return render_template('index.html', envName=envName, agtName=agtName, allowedEnvs=allowedEnvs,
-                               allowedAgents=allowedAgents, isLogin=isLogin, instances=instances)
+                               allowedAgents=allowedAgents, isLogin=mh.isLogin, instances=instances,
+                               session=mh.awsSession)
 
 
+# get info using lambda function
 def lambda_info(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
     lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
     data = {
@@ -87,53 +103,72 @@ def lambda_info(aws_access_key, aws_secret_key, aws_security_token, job_id, argu
 
 
 # login page of the application
-@app.route('/login')
-def loginPage():
-    return render_template('login.html')
+@app.route('/login/<session>')
+def loginPage(session):
+    return render_template('login.html', session=session)
+
+
+# get the model helper
+def getMH(session):
+    for i in mhList:
+        if i.awsSession == int(session):
+            return i
+    return None
 
 
 # logging in the AWS account
 @app.route('/loggingIn')
 def loggingIn():
-    global isLogin, accessKey, secretKey, securityToken, jobID
-    accessKey = request.args.get('accessKey')
-    secretKey = request.args.get('secretKey')
-    securityToken = request.args.get('securityToken')
-    is_valid_aws_credential(accessKey, secretKey, securityToken)
-    isLogin = is_valid_aws_credential(accessKey, secretKey, securityToken)
+    # global isLogin, accessKey, secretKey, securityToken, jobID
+    mh = getMH(request.args.get('session'))  # get model helper from session
+    mh.accessKey = request.args.get('accessKey')
+    mh.secretKey = request.args.get('secretKey')
+    mh.securityToken = request.args.get('securityToken')
+    is_valid_aws_credential(mh.accessKey, mh.secretKey, mh.securityToken)  # check if credential works
+    mh.isLogin = is_valid_aws_credential(mh.accessKey, mh.secretKey, mh.securityToken)
     # TODO: change
     # jobID = generate_jobID()
-    jobID = "1"
-    if isLogin:
+    mh.jobID = str(mh.awsSession)
+    print(mh.isLogin)
+    if mh.isLogin:
         # mod.createBridge(jobID, secretKey, accessKey, securityToken)
         # session = boto3.session.Session()
         # os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
-        global awsS3
-        awsS3 = get_aws_s3(accessKey, secretKey)
-        return jsonify(success=True)
+        # global awsS3
+        mh.awsS3 = get_aws_s3(mh.accessKey, mh.secretKey)  # get s3
+        return jsonify(success=True)  # login success
     else:
-        return jsonify(success=False)
+        return jsonify(success=False)  # login fail
 
 
 # logging out the AWS account
-@app.route('/logout')
-def logout():
-    global isLogin, jobID
-    isLogin = False
+@app.route('/logout/<session>')
+def logout(session):
+    # global isLogin, jobID
+    mh = getMH(session)  # get model helper from session
+    mh.isLogin = False
     # TODO: replace request.post.get
+
+    # terminate instance
     lambda_terminate_instance(
-        accessKey,
-        secretKey,
-        securityToken,
-        jobID,
+        mh.accessKey,
+        mh.secretKey,
+        mh.securityToken,
+        mh.jobID,
         {
         }
     )
-    jobID = None
+
+    # job id removed
+    mh.jobID = None
+    mh.accessKey = None
+    mh.secretKey = None
+    mh.securityToken = None
 
     return jsonify(success=True)
 
 
+# terminate the instance of the given credentials and job id
 def lambda_terminate_instance(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
     # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/lambda.html
     lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
@@ -154,6 +189,7 @@ def lambda_terminate_instance(aws_access_key, aws_secret_key, aws_security_token
     return False
 
 
+# gets the safe value of the given value
 def get_safe_value(convert_function, input_value, default_value):
     try:
         return convert_function(input_value)
@@ -199,84 +235,88 @@ def custAg():
 
 # displaying model page
 # sending parameters info
-@app.route('/model/<environment>/<agent>')
-def modelPage(environment, agent):
+@app.route('/model/<environment>/<agent>/<session>')
+def modelPage(environment, agent, session):
     # set agent class
+    mh = getMH(session)
     for curAgent in agents:
         if agent == curAgent.displayName:
-            mod.agent_class = curAgent
+            mh.mod.agent_class = curAgent
             break
 
     # set environment class
     for curEnv in environments:
         if environment == curEnv.displayName:
-            mod.environment_class = curEnv
+            mh.mod.environment_class = curEnv
             break
 
-    mod.reset()  # reset model
+    mh.mod.reset()  # reset model
 
     # set parameters to be sent
     params = [ag.Agent.Parameter('Number of Episodes', 1, 655360, 1, 1000, True, True,
                                  "The number of episodes to run the model on"),
               ag.Agent.Parameter('Max Size', 1, 655360, 1, 200, True, True,
                                  "The max number of timesteps permitted in an episode")]
-    for param in mod.agent_class.parameters:
+    for param in mh.mod.agent_class.parameters:
         params.append(param)
 
-    return render_template('model.html', params=params, isLogin=isLogin)
+    return render_template('model.html', params=params, isLogin=mh.isLogin, session=session)
 
 
 # displaying model page
 # sending parameters info
-@app.route('/model/<environment>/<agent>/<instance>')
-def modelPageAWS(environment, agent, instance):
-    global awsCurAg, awsCurEnv, awsInst
-
+@app.route('/model/<environment>/<agent>/<instance>/<session>')
+def modelPageAWS(environment, agent, instance, session):
+    # global awsCurAg, awsCurEnv, awsInst
+    mh = getMH(session)
     # set agent
-    for i in awsAg:
+    for i in mh.awsAg:
         if i.get('name') == agent:
-            awsCurAg = i
+            mh.awsCurAg = i
             break
 
     # set environment
-    for i in awsEnv:
+    for i in mh.awsEnv:
         if i.get('name') == environment:
-            awsCurEnv = i
+            mh.awsCurEnv = i
             break
 
     # set instance
-    awsInst = instance
+    mh.awsInst = instance
 
     # set parameters
     tempParams = []
-    for i in awsCurAg.get('parameters'):
-        for j in awsParam:
+    for i in mh.awsCurAg.get('parameters'):
+        for j in mh.awsParam:
             if j == i:
-                awsParam.get(j)['id'] = j
-                tempParams.append(awsParam.get(j))
+                mh.awsParam.get(j)['id'] = j
+                tempParams.append(mh.awsParam.get(j))
     # print(tempParams)
-    return render_template('model.html', params=tempParams, isLogin=isLogin)
+    return render_template('model.html', params=tempParams, isLogin=mh.isLogin, session=session)
 
 
 # saving model
 @app.route('/saveModel')
 def saveModel():
-    if isLogin:
+    mh = getMH(request.args.get('session'))  # get the model helper from the session
+    if mh.isLogin:
+        #  export the model through lambda function
         temp = lambda_export_model(
-            accessKey,
-            secretKey,
-            securityToken,
-            jobID,
+            mh.accessKey,
+            mh.secretKey,
+            mh.securityToken,
+            mh.jobID,
             {
             }
         )
         return temp
     else:
         # encode the model
-        temp = jsonpickle.encode((mod.agent.displayName, mod.agent.memsave()))
+        temp = jsonpickle.encode((mh.mod.agent.displayName, mh.mod.agent.memsave()))
         return jsonify(agent=temp)
 
 
+# exporting for the lambda function
 def lambda_export_model(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
     lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
     data = {
@@ -299,37 +339,43 @@ def lambda_export_model(aws_access_key, aws_secret_key, aws_security_token, job_
 # loading model
 @app.route('/loadModel', methods=['POST'])
 def loadModel():
-    if isLogin:
-        if "upload" not in request.files:
+    # TODO: post get session?
+    mh = getMH(request.form.get('session'))  # get the model helper from the session
+    # print(request.form.get('session'))
+    # if mh is None:
+    #     mh = request.files["session"]
+    if mh.isLogin:
+        if "upload" not in request.files:  # check if upload exists
             return "No file"
 
         # mem = request.form.get('agent')
         mem = request.files["upload"]
 
-        if mem == "":
+        if mem == "":  # check if file exists
             return "Please select a file"
 
         if mem:
             # print(mem)
             # name = "easyrl-{}{}".format(jobID, awsSession)
-            name = "easyrl-{}".format(jobID)
+            name = "easyrl-{}".format(mh.jobID)  # name of the bucket
             # name = "easyrl"
-            awsS3.create_bucket(ACL='public-read', Bucket=name)
-            upload_file_to_s3(mem, name)
+            mh.awsS3.create_bucket(ACL='public-read', Bucket=name)
+            upload_file_to_s3(mh, mem, name)
 
             # output = upload_file()
             # return str(output)
             # print(str(output))
+
+            # import lambda function
             temp = lambda_import(
-                accessKey,
-                secretKey,
-                securityToken,
-                jobID,
+                mh.accessKey,
+                mh.secretKey,
+                mh.securityToken,
+                mh.jobID,
                 {}
             )
             print(temp)
             return temp
-
 
             # bucket = "easyrl-{}{}".format(jobID, awsSession)
             #
@@ -362,23 +408,23 @@ def loadModel():
             name, mem = jsonpickle.decode(request.form.get('agent'))  # decode model
 
             # validate the decoded model
-            if mod.agent_class.displayName == name:
-                mod.isLoaded = True
-                mod.memload = mem
+            if mh.mod.agent_class.displayName == name:
+                mh.mod.isLoaded = True
+                mh.mod.memload = mem
                 return jsonify(success=True)
         except ValueError:
             return jsonify(success=False)
         return jsonify(success=False)
 
 
-def upload_file_to_s3(file, bucket_name, acl="public-read"):
-
+# upload the file to s3
+def upload_file_to_s3(mh, file, bucket_name, acl="public-read"):
     """
     Docs: http://boto3.readthedocs.io/en/latest/guide/s3.html
     """
-
     try:
-        awsS3.upload_fileobj(
+        # upload file object to bucket
+        mh.awsS3.upload_fileobj(
             file,
             bucket_name,
             "model.bin"
@@ -396,6 +442,7 @@ def upload_file_to_s3(file, bucket_name, acl="public-read"):
     return "{}{}".format('', file.filename)
 
 
+# lambda import model function
 def lambda_import(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
     lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
     data = {
@@ -425,61 +472,65 @@ def lambda_import(aws_access_key, aws_secret_key, aws_security_token, job_id, ar
 # starting training
 @app.route('/startTrain')
 def startTrain():
-    global inputParams, tempImages
-    if isLogin:
-        inputParams = []
-        tempImages = []
+    # global inputParams, tempImages
+    mh = getMH(request.args.get('session'))
+    # print(mh.awsSession)
+    if mh.isLogin:
+        mh.inputParams = []
+        mh.tempImages = []
 
         # set hyperparameters
         temp = request.args.get('0')
         i = 0
         while temp is not None:
-            inputParams.append(float(temp))
+            mh.inputParams.append(float(temp))
             i += 1
             temp = request.args.get(str(i))
 
-        payload = setUpPayload()
+        payload = setUpPayload(mh)
 
         return lambda_run_job(
-            accessKey,
-            secretKey,
-            securityToken,
-            jobID,
+            mh.accessKey,
+            mh.secretKey,
+            mh.securityToken,
+            mh.jobID,
             payload
         )
     else:
-        if mod.isRunning:  # if model is running
+        print(mh.mod)
+        print(mh.msg)
+        if mh.mod.isRunning:  # if model is running
             return jsonify(finished=False)
         else:
             # reset hyperparameters and image queue
-            inputParams = []
-            tempImages = []
+            mh.inputParams = []
+            mh.tempImages = []
 
             # set hyperparameters
             temp = request.args.get('0')
             i = 0
             while temp is not None:
-                inputParams.append(float(temp))
+                mh.inputParams.append(float(temp))
                 i += 1
                 temp = request.args.get(str(i))
-
+            print(mh.inputParams)
             # run training
-            global curThread
-            curThread = threading.Thread(target=mod.run_learning, args=[msg, ] + inputParams)
-            global curDisplayIndex
-            curDisplayIndex = 0
-            curThread.start()
+            # global curThread
+            mh.curThread = threading.Thread(target=mh.mod.run_learning, args=[mh.msg, ] + mh.inputParams)
+            # global curDisplayIndex
+            mh.curDisplayIndex = 0
+            mh.curThread.start()
             return jsonify(finished=True)
 
 
 #
-def setUpPayload():
+def setUpPayload(mh):
     payload = {
-        "instanceType": get_safe_value(str, awsInst, "c4.xlarge")
-        , "killTime": get_safe_value(int, awsKillTime, 600)
-        , "environment": get_safe_value(int, awsCurEnv.get('index'), 1)
-        , "agent": get_safe_value(int, awsCurAg.get('index'), 1)
-        , "continuousTraining": get_safe_value(int, awsContTrain, 0)
+        "instanceType": get_safe_value(str, mh.awsInst, "c4.xlarge")
+        , "killTime": get_safe_value(int, mh.awsKillTime, 600)
+        , "environment": get_safe_value(int, mh.awsCurEnv.get('index'), 1)
+        , "agent": get_safe_value(int, mh.awsCurAg.get('index'), 1)
+        , "continuousTraining": get_safe_value(int, mh.awsContTrain, 0)
         # , "episodes": 20
         # , "steps": 50
         # , "gamma": 0.97
@@ -510,68 +561,74 @@ def setUpPayload():
         # , "valueLearnRatePlus": 0.001
     }
 
-    for j in range(len(awsCurAg.get('parameters'))):
-        if ("episodes" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(int, inputParams[j], 20)
-        elif ("steps" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(int, inputParams[j], 50)
-        elif ("gamma" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.97)
-        elif ("minEpsilon" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.01)
-        elif ("maxEpsilon" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.99)
-        elif ("decayRate" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.01)
-        elif ("batchSize" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(int, inputParams[j], 32)
-        elif ("memorySize" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(int, inputParams[j], 1000)
-        elif ("targetInterval" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(int, inputParams[j], 10)
-        elif ("historyLength" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(int, inputParams[j], 10)
-        elif ("alpha" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.9)
-        elif ("delta" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j],
-                                                                    0.001)  # TODO: change from int
-        elif ("sigma" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.5)  # TODO: change from int
-        elif ("population" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(int, inputParams[j], 10)
-        elif ("elite" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.2)  # TODO: change from int
-        elif ("tau" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j],
-                                                                    0.97)  # TODO: change from int
-        elif ("temperature" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j],
-                                                                    0.97)  # TODO: change from int
-        elif ("learningRate" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j],
-                                                                    0.001)  # TODO: change from int
-        elif ("policyLearnRate" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j],
-                                                                    0.001)  # TODO: change from int
-        elif ("valueLearnRate" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j],
-                                                                    0.001)  # TODO: change from int
-        elif ("horizon" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 50)  # TODO: right? float?
-        elif ("epochSize" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 500)  # TODO: right? float?
-        elif ("ppoEpsilon" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j], 0.2)  # TODO: change from int
-        elif ("ppoLambda" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j],
-                                                                    0.95)  # TODO: change from int
-        elif ("valueLearnRatePlus" == awsCurAg.get('parameters')[j]):
-            payload[awsCurAg.get('parameters')[j]] = get_safe_value(float, inputParams[j],
-                                                                    0.001)  # TODO: change from int
+    for j in range(len(mh.awsCurAg.get('parameters'))):
+        if "episodes" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(int, mh.inputParams[j], 20)
+        elif "steps" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(int, mh.inputParams[j], 50)
+        elif "gamma" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j], 0.97)
+        elif "minEpsilon" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j], 0.01)
+        elif "maxEpsilon" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j], 0.99)
+        elif "decayRate" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j], 0.01)
+        elif "batchSize" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(int, mh.inputParams[j], 32)
+        elif "memorySize" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(int, mh.inputParams[j], 1000)
+        elif "targetInterval" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(int, mh.inputParams[j], 10)
+        elif "historyLength" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(int, mh.inputParams[j], 10)
+        elif "alpha" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j], 0.9)
+        elif "delta" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j],
+                                                                       0.001)  # TODO: change from int
+        elif "sigma" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j],
+                                                                       0.5)  # TODO: change from int
+        elif "population" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(int, mh.inputParams[j], 10)
+        elif "elite" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j],
+                                                                       0.2)  # TODO: change from int
+        elif "tau" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j],
+                                                                       0.97)  # TODO: change from int
+        elif "temperature" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j],
+                                                                       0.97)  # TODO: change from int
+        elif "learningRate" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j],
+                                                                       0.001)  # TODO: change from int
+        elif "policyLearnRate" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j],
+                                                                       0.001)  # TODO: change from int
+        elif "valueLearnRate" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j],
+                                                                       0.001)  # TODO: change from int
+        elif "horizon" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j],
+                                                                       50)  # TODO: right? float?
+        elif "epochSize" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j],
+                                                                       500)  # TODO: right? float?
+        elif "ppoEpsilon" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j],
+                                                                       0.2)  # TODO: change from int
+        elif "ppoLambda" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j],
+                                                                       0.95)  # TODO: change from int
+        elif "valueLearnRatePlus" == mh.awsCurAg.get('parameters')[j]:
+            payload[mh.awsCurAg.get('parameters')[j]] = get_safe_value(float, mh.inputParams[j],
+                                                                       0.001)  # TODO: change from int
     return payload
 
 
+# lambda run training task function
 def lambda_run_job(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
     lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
     data = {
@@ -591,35 +648,37 @@ def lambda_run_job(aws_access_key, aws_secret_key, aws_security_token, job_id, a
         return ""
 
 
-# poll
+# gets information per poll
 @app.route('/poll')
 def poll():
-    if jobID is None:
+    mh = getMH(request.args.get('session'))  # get model helper from session
+    if mh.jobID is None:
         return {
             "instanceState": "booting",
             "instanceStateText": "Loading...",
             "error": "No Job ID"
         }
 
-    global inputParams, tempImages
-    inputParams = []
-    tempImages = []
+    # global inputParams, tempImages
+    mh.inputParams = []
+    mh.tempImages = []
 
     # set hyperparameters
     temp = request.args.get('0')
     i = 0
     while temp is not None:
-        inputParams.append(float(temp))
+        mh.inputParams.append(float(temp))
         i += 1
         temp = request.args.get(str(i))
 
     try:
+        # TODO: possibly don't run if access key, secret key, sec token, jobid are NONE
         temp = lambda_poll(
-            accessKey,
-            secretKey,
-            securityToken,
-            jobID,
-            setUpPayload()
+            mh.accessKey,
+            mh.secretKey,
+            mh.securityToken,
+            mh.jobID,
+            setUpPayload(mh)
         )
         print(temp)
         return temp
@@ -630,6 +689,7 @@ def poll():
         }
 
 
+# lambda poll function
 def lambda_poll(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
     lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
     data = {
@@ -653,121 +713,129 @@ def lambda_poll(aws_access_key, aws_secret_key, aws_security_token, job_id, argu
 # running training
 @app.route('/runTrain')
 def runTrain():
-    temp = msg.get(block=True)  # receive message
+    mh = getMH(request.args.get('session'))
+    temp = mh.msg.get(block=True)  # receive message
 
     # train is finished
     if temp.data == Model.Message.TRAIN_FINISHED:
         return jsonify(finished=True)
 
     # test is still running
-    episodeAccLoss = 0
-    episodeAccEpsilon = 0
-    episodeAccReward = 0
+    mh.episodeAccLoss = 0
+    mh.episodeAccEpsilon = 0
+    mh.episodeAccReward = 0
     global tempImages
     while temp.data != Model.Message.EPISODE:
         if temp.type == Model.Message.STATE:
             if temp.data.loss:
-                episodeAccLoss += temp.data.loss
+                mh.episodeAccLoss += temp.data.loss
             if temp.data.epsilon:
-                episodeAccEpsilon += temp.data.epsilon
+                mh.episodeAccEpsilon += temp.data.epsilon
             if temp.data.reward:
-                episodeAccReward += temp.data.reward
+                mh.episodeAccReward += temp.data.reward
             if temp.data.image:
-                tempImages.append((temp.data.image, temp.data.episode, temp.data.step))
+                mh.tempImages.append((temp.data.image, temp.data.episode, temp.data.step))
 
-        temp = msg.get(block=True)
-
-    return jsonify(loss=episodeAccLoss / inputParams[1], reward=episodeAccReward,
-                   epsilon=episodeAccEpsilon / inputParams[1],
+        temp = mh.msg.get(block=True)
+    # print(mh.episodeAccLoss)
+    # print(mh.episodeAccReward)
+    # print(mh.episodeAccEpsilon)
+    # print(mh.inputParams)
+    return jsonify(loss=mh.episodeAccLoss / mh.inputParams[1], reward=mh.episodeAccReward,
+                   epsilon=mh.episodeAccEpsilon / mh.inputParams[1],
                    finished=False)  # inputParams[1] is max size the hyperparameter
 
 
 # display an image for this route
+# TODO: session change
 @app.route('/tempImage')
 def tempImage():
-    global noImg, curEp, curStep, curFin, curDisplayIndex
+    # global noImg, curEp, curStep, curFin, curDisplayIndex
+    mh = getMH(request.args.get('session'))
     if tempImages:
-        temp = tempImages[curDisplayIndex]
-        curEp = temp[1]
-        curStep = temp[2]
-        if curDisplayIndex == len(tempImages) - 1:
-            if curThread.is_alive():
-                curFin = False
+        temp = tempImages[mh.curDisplayIndex]
+        mh.curEp = temp[1]
+        mh.curStep = temp[2]
+        if mh.curDisplayIndex == len(tempImages) - 1:
+            if mh.curThread.is_alive():
+                mh.curFin = False
             else:
-                curFin = True
-                curDisplayIndex = 0
+                mh.curFin = True
+                mh.curDisplayIndex = 0
         else:
-            curFin = False
-            curDisplayIndex += 1
+            mh.curFin = False
+            mh.curDisplayIndex += 1
         return serve_pil_image(temp[0])  # image for model
     else:
-        curEp = 0
-        curStep = 0
-        curFin = True
+        mh.curEp = 0
+        mh.curStep = 0
+        mh.curFin = True
         return serve_pil_image(noImg)  # image for no display
 
 
 # display the episode and step number of the displayed environment
 @app.route('/tempImageEpStep')
 def tempImageEpStep():
-    return jsonify(episode=curEp, step=curStep, finished=curFin)
+    mh = getMH(request.args.get('session'))
+    return jsonify(episode=mh.curEp, step=mh.curStep, finished=mh.curFin)
 
 
 # starting testing
 @app.route('/startTest')
 def startTest():
-    global inputParams, tempImages
-    if isLogin:
-        inputParams = []
-        tempImages = []
+    mh = getMH(request.args.get('session'))
+    # global inputParams, tempImages
+    if mh.isLogin:
+        mh.inputParams = []
+        mh.tempImages = []
 
         # set hyperparameters
         temp = request.args.get('0')
         i = 0
         while temp is not None:
-            inputParams.append(float(temp))
+            mh.inputParams.append(float(temp))
             i += 1
             temp = request.args.get(str(i))
 
-        payload = setUpPayload()
+        payload = setUpPayload(mh)
 
         return lambda_test_job(
-            accessKey,
-            secretKey,
-            securityToken,
-            jobID,
+            mh.accessKey,
+            mh.secretKey,
+            mh.securityToken,
+            mh.jobID,
             payload
         )
     else:
-        if mod.isRunning:  # if model is running
+        if mh.mod.isRunning:  # if model is running
             return jsonify(finished=False)
         else:
-            if mod.agent or mod.isLoaded:
+            if mh.mod.agent or mh.mod.isLoaded:
                 # reset hyperparameters and image queue
 
-                inputParams = []
-                tempImages = []
+                mh.inputParams = []
+                mh.tempImages = []
 
                 # set hyperparameters
                 temp = request.args.get('0')
                 i = 0
                 while temp is not None:
-                    inputParams.append(float(temp))
+                    mh.inputParams.append(float(temp))
                     i += 1
                     temp = request.args.get(str(i))
 
                 # run testing
-                global curThread
-                curThread = threading.Thread(target=mod.run_testing, args=[msg, ] + inputParams)
-                global curDisplayIndex
-                curDisplayIndex = 0
-                curThread.start()
+                # global curThread
+                mh.curThread = threading.Thread(target=mh.mod.run_testing, args=[mh.msg, ] + mh.inputParams)
+                # global curDisplayIndex
+                mh.curDisplayIndex = 0
+                mh.curThread.start()
                 return jsonify(finished=True, model=True)
             else:
                 return jsonify(finished=False, model=False)  # if agent doesn't exist
 
 
-#
+# lambda run testing job
 def lambda_test_job(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
     lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
     data = {
@@ -790,23 +858,24 @@ def lambda_test_job(aws_access_key, aws_secret_key, aws_security_token, job_id, 
 # running testing
 @app.route('/runTest')
 def runTest():
-    temp = msg.get(block=True)  # receive message
+    mh = getMH(request.args.get('session'))  # get model helper from session
+    temp = mh.msg.get(block=True)  # receive message
 
     # test is finished
     if temp.data == Model.Message.TEST_FINISHED:
         return jsonify(finished=True)
 
     # test is still running
-    episodeAccReward = 0
+    mh.episodeAccReward = 0
     while temp.data != Model.Message.EPISODE:
         if temp.type == Model.Message.STATE:
             if temp.data.reward:
-                episodeAccReward += temp.data.reward
+                mh.episodeAccReward += temp.data.reward
             if temp.data.image:
-                tempImages.append((temp.data.image, temp.data.episode, temp.data.step))
-        temp = msg.get(block=True)
+                mh.tempImages.append((temp.data.image, temp.data.episode, temp.data.step))
+        temp = mh.msg.get(block=True)
 
-    return jsonify(reward=episodeAccReward, finished=False)
+    return jsonify(reward=mh.episodeAccReward, finished=False)
 
 
 # display image as a route
@@ -821,21 +890,23 @@ def serve_pil_image(pil_img):
 # stop training or testing
 @app.route('/halt')
 def halt():
-    if isLogin:
+    mh = getMH(request.args.get('session'))  # get model helper from session
+    if mh.isLogin:
         return lambda_halt_job(
-            accessKey,
-            secretKey,
-            securityToken,
-            jobID,
+            mh.accessKey,
+            mh.secretKey,
+            mh.securityToken,
+            mh.jobID,
             {
             }
         )
     else:
-        if mod.isRunning:
-            mod.halt_learning()
+        if mh.mod.isRunning:
+            mh.mod.halt_learning()
         return jsonify(finished=True)
 
 
+# lambda function to halt testing and training
 def lambda_halt_job(aws_access_key, aws_secret_key, aws_security_token, job_id, arguments):
     lambdas = get_aws_lambda(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
     data = {
@@ -858,8 +929,9 @@ def lambda_halt_job(aws_access_key, aws_secret_key, aws_security_token, job_id, 
 # change display episode
 @app.route('/changeDisplayEpisode')
 def changeDisplayEpisode():
-    global curDisplayIndex
-    ep = int(request.args.get('episode'))
+    mh = getMH(request.args.get('session'))  # get model helper from session
+    # global curDisplayIndex
+    ep = int(request.args.get('episode'))  # get the episode number
     temp = tempImages[-1][1]
     if temp < ep:
         episode = binarySearchEpisode(tempImages, 0, len(tempImages), temp)
@@ -869,7 +941,7 @@ def changeDisplayEpisode():
     if episode == -1:
         print("error")
     else:
-        curDisplayIndex = episode
+        mh.curDisplayIndex = episode
     return jsonify(finished=True)
 
 
@@ -881,7 +953,7 @@ def binarySearchSteps(arr, low, high, x, ep):
         mid = (high + low) // 2
         # If element is present at the middle itself
         if arr[mid][2] == x:
-            return mid;
+            return mid
 
         # If element is smaller than mid, then it can only
         # be present in left subarray
@@ -927,19 +999,20 @@ def binarySearchEpisode(arr, low, high, x):
 # Reset model
 @app.route('/reset')
 def reset():
+    mh = getMH(request.args.get('session'))  # get the model helper from session
     # halting
-    if mod.isRunning:
-        mod.halt_learning()
+    if mh.mod.isRunning:
+        mh.mod.halt_learning()
 
-    global tempImages, msg
+    # global tempImages, msg
     # reset images
-    tempImages = []
+    mh.tempImages = []
     # reset messages
-    msg = queue.Queue()
+    mh.msg = queue.Queue()
     # reset model
-    mod.reset()
-    global curDisplayIndex
-    curDisplayIndex = 0
+    mh.mod.reset()
+    # global curDisplayIndex
+    mh.curDisplayIndex = 0
     return jsonify(finished=True)
 
 
@@ -975,7 +1048,47 @@ def is_valid_aws_credential(aws_access_key_id, aws_secret_access_key, aws_sessio
         return False
 
 
+# get new window's session number
+@app.route('/newWindow')
+def newWindow():
+    return jsonify(session=mhList[-1].awsSession + 1)
+
+
 # running application
+class ModelHelper:
+    def __init__(self, session):
+        self.msg = queue.Queue()  # messages queue
+        self.mod = model.Model()  # model initialize
+
+        self.params = None  # hyper parameters
+        self.inputParams = []  # input hyper parameters
+        self.tempImages = []  # image queue
+        self.curEp = 0  # current episode
+        self.curStep = 0  # current step
+        self.curFin = False  # if task is finished
+        self.curDisplayIndex = 0  # the index of the displayed environment
+        self.curThread = None  # the thread that runs the task
+
+        self.isLogin = False  # if aws credentials is used
+        self.accessKey = None  # the aws access key
+        self.secretKey = None  # the aws secret key
+        self.securityToken = None  # the aws security token
+        self.jobID = None  # the job id
+        self.awsEnv = None  # the environment
+        self.awsAg = None  # the agent
+        self.awsCurEnv = None  # the current environment
+        self.awsCurAg = None  # the current agent
+        self.awsInst = None  # the instance
+        self.awsEnvMap = None  # the environment map
+        self.awsAgMap = None  # the agent map
+        self.awsParam = None  # the parameters
+        self.awsSession = session  # the aws session number
+        self.awsKillTime = 31536000  # the kill time of the instance
+        self.awsContTrain = 0  # to use continuous training functionality
+        self.awsS3 = None
+
+
+# main application
 if __name__ == "__main__":
     # list of agents
     agents = [deepQ.DeepQ, deepQ.DeepQPrioritized, deepQ.DeepQHindsight, qLearning.QLearning, drqn.DRQN,
@@ -1030,38 +1143,26 @@ if __name__ == "__main__":
     envName = [opt.displayName for opt in environments]  # environment names
     agtName = [opt.displayName for opt in agents]  # agent names
 
-    msg = queue.Queue()  # messages queue
-    mod = model.Model()  # model initialize
-
-    params = None  # hyper parameters
-    inputParams = []  # input hyper parameters
-    tempImages = []  # image queue
-    noImg = PIL.Image.open("./static/img/noImg.png")  # image for when the agent has no image
-    curEp = 0
-    curStep = 0
-    curFin = False
-    curDisplayIndex = 0
-    curThread = None
-
-    isLogin = False
-    accessKey = None
-    secretKey = None
-    securityToken = None
-    jobID = None
+    # list of instances
     instances = ["c4.large ($0.10/hr)", "c4.xlarge ($0.19/hr)", "c4.2xlarge ($0.39/hr)", "c4.4xlarge ($0.79/hr)",
                  "c4.8xlarge ($1.59/hr)", "g4dn.xlarge ($0.52/hr)", "g4dn.2xlarge ($0.75/hr)",
                  "g4dn.4xlarge ($1.20/hr)", "g4dn.8xlarge ($2.17/hr)"]
-    awsEnv = None
-    awsAg = None
-    awsCurEnv = None
-    awsCurAg = None
-    awsInst = None
-    awsEnvMap, awsAgMap, awsParam = None, None, None
-    awsSession = 1
-    awsKillTime = 31536000
-    awsContTrain = 0
-    awsS3 = None
-    app.run()
+    # awsEnv = None
+    # awsAg = None
+    # awsCurEnv = None
+    # awsCurAg = None
+    # awsInst = None
+    # awsEnvMap, awsAgMap, awsParam = None, None, None
+    # awsSession = 1
+    # awsKillTime = 31536000
+    # awsContTrain = 0
+    # awsS3 = None
+
+    mhList = []  # list of model helper for tab functionality
+
+    noImg = PIL.Image.open("./static/img/noImg.png")  # image for when the agent has no image
+
+    app.run()  # run the app
 
 # class AWSLambdaKeys:
 #

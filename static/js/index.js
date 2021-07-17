@@ -42,13 +42,13 @@ function modelSelected() {
 //            loader.style.display = "inline-block";
 //            console.log(loader)
 //            setTimeout(doPoll, 1000);
-            location.replace("/model/" + environment + "/" + agent + "/" + instance.split(' ')[0]); // change location to the new model
+            location.replace("/model/" + environment + "/" + agent + "/" + instance.split(' ')[0] + "/" + session); // change location to the new model
         } else {
             window.alert("You are missing an agent and/or an environment and/or an instance!"); // error
         }
     } else {
         if (agent && environment) { // if agent and environment exists
-            location.replace("/model/" + environment + "/" + agent); // change location to the new model
+            location.replace("/model/" + environment + "/" + agent + "/" + session); // change location to the new model
         } else {
             window.alert("You are missing an agent and/or an environment!"); // error
         }

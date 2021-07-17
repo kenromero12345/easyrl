@@ -319,6 +319,20 @@ p {
     display: none;
 }
 
+#sessionDisplay {
+    margin-top:10px;
+    width:100px;
+    float: right;
+    text-align:center;
+    height: 38px
+}
+
+#newTab {
+    margin-left: 10px;
+    margin-top:10px;
+    float:right
+}
+
 #upload_form {
     display: inline-block;
 }
