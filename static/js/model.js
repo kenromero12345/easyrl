@@ -103,7 +103,15 @@ function getParamsVal(lists) {
     for (var i = 0; i < lists.length; i++) {
         params[i] = lists[i].value;
     }
-    params['session'] = session
+    params['session'] = session;
+    if (isLogin) {
+        if (contTrainIn.checked) {
+            params['contTrain'] = 1;
+        } else {
+            params['contTrain'] = 0;
+        }
+    }
+
 //    console.log(params)
     return params
 }
@@ -493,9 +501,10 @@ function updateLoadModDisabled(bool) {
 //display change helper recursion
 function displayRecursion() {
     if (isDisplaying) {
-        $.get($SCRIPT_ROOT + '/tempImage', {session: session}, function() {
+        console.log(session)
+        $.get($SCRIPT_ROOT + '/tempImage/' + session, function() {
             htmlImg.src = tempImgUrl;
-            $.get($SCRIPT_ROOT + '/tempImageEpStep', {session: session}, function(data) {
+            $.get($SCRIPT_ROOT + '/tempImageEpStep/' + session, function(data) {
                 displayEnvEp.innerHTML = data.episode;
                 epSlider.title = data.episode;
                 epSlider.data = data.episode;
@@ -556,6 +565,8 @@ function updateEpisodeSlider(sl) {
 
 
 function doPoll() {
+    //disable all buttons except the cont train btn if it is checked
+
     try {
         var lists = document.querySelectorAll(".hyperparameter input[type=range]"); // get parameter components
         $.getJSON('/poll', getParamsVal(lists), function (result) {
@@ -597,6 +608,9 @@ function updateAWSPage2(result) {
         } else if (stateText == "Running Task" || stateText == "Starting Task") {
             isRunning = true;
             awsToggleBtns(true)
+            if (contTrainIn.checked) {
+                haltBtn.disabled = true;
+            }
         }
 //        else if (stateText == "Loading...") {
 //

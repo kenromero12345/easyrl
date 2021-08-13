@@ -22,7 +22,7 @@
                 <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="/index">Model</a>
+                            <a class="nav-link active" aria-current="page" href="/index/{{session}}">Model</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/about">About</a>
@@ -44,10 +44,22 @@
 
     <!--top buttons-->
         <div class="topBtn">
+            {% if isLogin %}
+            <div id="contTrainDiv">
+                <input class="btn-check" type="checkbox" id="contTrainIn"
+                       data-bs-toggle="tooltip" data-bs-placement="top"
+                       title="Toggling the continuous train functionality which is the training will continue until stopped">
+                <label class="btn btn-outline-primary modelButtons" for="contTrainIn"
+                       data-bs-toggle="tooltip" data-bs-placement="top" id="contTrainLbl"
+                       title="Toggling the continuous train functionality which is the training will continue until stopped">
+                    Continuous Train
+                </label>
+            </div>
+            {% endif %}
             <button type="button" class="btn btn-success modelButtons" onclick="train()" id="trainBtn"
                     data-bs-toggle="tooltip" data-bs-placement="top" title="Train the agent with the current settings">
                 Train</button>
-            <button type="button" class="btn btn-warning modelButtons" onclick="halt()"
+            <button type="button" class="btn btn-warning modelButtons" onclick="halt()" id="haltBtn"
                     data-bs-toggle="tooltip" data-bs-placement="top" title="Pause the current training">
                 Halt</button>
             <button type="button" class="btn btn-success modelButtons" onclick="test()" id="testBtn"
@@ -225,6 +237,7 @@
             var isDisplaying = false;
             var trainBtn = document.getElementById("trainBtn");
             var testBtn = document.getElementById("testBtn");
+            var haltBtn = document.getElementById("haltBtn");
             var loadModBtn = document.getElementById("loadModBtn");
             var uploadModIn = document.getElementById("uploadModIn");
             var uploadModBtn = document.getElementById("uploadModBtn");
@@ -232,7 +245,7 @@
             var displayEnvStep = document.getElementById("displayEnvStep");
             var envSwitch = document.getElementById("envSwitch");
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-            var tempImgUrl = "{{ url_for('tempImage')}}";
+            var tempImgUrl = "{{ url_for('tempImage', session = session)}}";
             var epSlider = document.getElementById("epSlider");
             var noImgUrl = "{{ url_for('static',filename='img/noImg.png') }}"
             //activate popper tooltip
@@ -245,6 +258,7 @@
             //aws
             {% if isLogin %}
                 var isLogin = true;
+                var contTrainIn = document.getElementById("contTrainIn");
             {% else %}
                 var isLogin = false;
             {% endif %}

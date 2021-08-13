@@ -239,6 +239,10 @@ h1 {
     margin-bottom:10px;
 }
 
+#contTrainDiv {
+    display:inline-block;
+}
+
 .topBtn {
     margin-left:20px;
     margin-right:20px;

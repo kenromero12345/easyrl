@@ -41,6 +41,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # do not use cache in this applicat
 # Sending environment and agent names and allowed environments and agents to be blocked
 # displaying index page
 @app.route('/')
+@app.route('/index')
 @app.route('/index/<session>')
 def indexPage(session=1):
     mh = getMH(session)  # get the session
@@ -652,6 +653,7 @@ def lambda_run_job(aws_access_key, aws_secret_key, aws_security_token, job_id, a
 @app.route('/poll')
 def poll():
     mh = getMH(request.args.get('session'))  # get model helper from session
+    mh.awsContTrain = request.args.get('contTrain') #TODO: doesn't matter if int or str?
     if mh.jobID is None:
         return {
             "instanceState": "booting",
@@ -724,7 +726,7 @@ def runTrain():
     mh.episodeAccLoss = 0
     mh.episodeAccEpsilon = 0
     mh.episodeAccReward = 0
-    global tempImages
+    # global tempImages
     while temp.data != Model.Message.EPISODE:
         if temp.type == Model.Message.STATE:
             if temp.data.loss:
@@ -748,15 +750,16 @@ def runTrain():
 
 # display an image for this route
 # TODO: session change
-@app.route('/tempImage')
-def tempImage():
+@app.route('/tempImage/<session>')
+def tempImage(session):
     # global noImg, curEp, curStep, curFin, curDisplayIndex
-    mh = getMH(request.args.get('session'))
-    if tempImages:
-        temp = tempImages[mh.curDisplayIndex]
+    mh = getMH(session)
+
+    if mh.tempImages:
+        temp = mh.tempImages[mh.curDisplayIndex]
         mh.curEp = temp[1]
         mh.curStep = temp[2]
-        if mh.curDisplayIndex == len(tempImages) - 1:
+        if mh.curDisplayIndex == len(mh.tempImages) - 1:
             if mh.curThread.is_alive():
                 mh.curFin = False
             else:
@@ -774,9 +777,9 @@ def tempImage():
 
 
 # display the episode and step number of the displayed environment
-@app.route('/tempImageEpStep')
-def tempImageEpStep():
-    mh = getMH(request.args.get('session'))
+@app.route('/tempImageEpStep/<session>')
+def tempImageEpStep(session):
+    mh = getMH(session)
     return jsonify(episode=mh.curEp, step=mh.curStep, finished=mh.curFin)
 
 
@@ -932,11 +935,11 @@ def changeDisplayEpisode():
     mh = getMH(request.args.get('session'))  # get model helper from session
     # global curDisplayIndex
     ep = int(request.args.get('episode'))  # get the episode number
-    temp = tempImages[-1][1]
+    temp = mh.tempImages[-1][1]
     if temp < ep:
-        episode = binarySearchEpisode(tempImages, 0, len(tempImages), temp)
+        episode = binarySearchEpisode(mh.tempImages, 0, len(mh.tempImages), temp)
     else:
-        episode = binarySearchEpisode(tempImages, 0, len(tempImages), ep)
+        episode = binarySearchEpisode(mh.tempImages, 0, len(mh.tempImages), ep)
 
     if episode == -1:
         print("error")
