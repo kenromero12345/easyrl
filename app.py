@@ -1,6 +1,10 @@
+from datetime import datetime
+currentTime = datetime.now()
+
 import io
 import json
 import os
+
 from types import ModuleType
 import PIL
 import boto3
@@ -1093,6 +1097,7 @@ class ModelHelper:
 
 # main application
 if __name__ == "__main__":
+    # currentTime = datetime.now()
     # list of agents
     agents = [deepQ.DeepQ, deepQ.DeepQPrioritized, deepQ.DeepQHindsight, qLearning.QLearning, drqn.DRQN,
               drqn.DRQNPrioritized, drqn.DRQNHindsight, adrqn.ADRQN, adrqn.ADRQNPrioritized, adrqn.ADRQNHindsight,
@@ -1164,8 +1169,9 @@ if __name__ == "__main__":
     mhList = []  # list of model helper for tab functionality
 
     noImg = PIL.Image.open("./static/img/noImg.png")  # image for when the agent has no image
-
+    print("time", datetime.now()-currentTime)
     app.run()  # run the app
+
 
 # class AWSLambdaKeys:
 #

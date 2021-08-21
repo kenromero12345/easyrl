@@ -31,7 +31,11 @@
                         </li>
                     </ul>
                     <div class="navbar-nav">
-                        <a class="nav-link active" aria-current="page" href="/login">Login</a>
+                        {% if isLogin %}
+                            <a class="nav-link logout" onClick="logout({{session}})">Logout</a>
+                        {% else %}
+                            <a class="nav-link" href="/login/{{session}}">Login</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>

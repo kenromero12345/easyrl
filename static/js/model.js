@@ -7,12 +7,11 @@ function updateSlider(slider) {
 //text input change updates slider
 function updateInput(input) {
     var slider = input.parentElement.querySelector("input[type=range]"); //get slider
-
     //validation
-    if (input.value > slider.max) { // if text input is above the max
+    if (parseInt(input.value) > parseInt(slider.max)) { // if text input is above the max
         slider.value = slider.max;
         input.value = slider.max;
-    } else if (input.value < slider.min) { // if text input is below the min
+    } else if (parseInt(input.value) < parseInt(slider.min)) { // if text input is below the min
         slider.value = slider.min;
         input.value = slider.min;
     } else {

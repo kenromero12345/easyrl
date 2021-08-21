@@ -267,6 +267,9 @@
                 setTimeout(function () {
                   doPoll();
                 }, 1000)
+
+                var tempLists = document.querySelectorAll(".hyperparameter input[type=range]");
+                console.log(tempLists)
             }
 
             var loaderWrapper = document.getElementById("loaderWrapper")
